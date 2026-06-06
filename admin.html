@@ -272,8 +272,8 @@
       </div>
 
       <div class="form-group">
-        <label>Parcelas</label>
-        <input name="parcelas" id="parcelas" placeholder="Ex: 6x de R$16,50">
+        <label>Link de Pagamento</label>
+        <input name="linkPagamento" id="linkPagamento" placeholder="https://link-de-pagamento.com/produto">
       </div>
 
       <div class="form-row">
@@ -534,7 +534,7 @@
     document.getElementById('descricao').value   = p.descricao;
     document.getElementById('preco').value       = p.preco;
     document.getElementById('precoAntigo').value = p.precoAntigo || '';
-    document.getElementById('parcelas').value    = p.parcelas || '';
+    document.getElementById('linkPagamento').value = p.linkPagamento || '';
     document.getElementById('categoria').value   = p.categoria;
     document.getElementById('secao').value       = p.secao || 'mais-vendidos';
     document.getElementById('badge').value       = p.badge || '';
