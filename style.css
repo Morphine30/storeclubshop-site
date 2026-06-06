@@ -444,7 +444,6 @@
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    overflow: hidden;
     cursor: pointer;
     transition: all .25s;
     position: relative;
@@ -533,6 +532,7 @@
     color: var(--muted);
   }
   .btn-buy {
+    display: block;
     width: 100%;
     background: var(--verde);
     color: #000;
@@ -546,6 +546,11 @@
     padding: 10px;
     cursor: pointer;
     transition: all .2s;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .btn-buy:hover { background: var(--verde2); }
 
@@ -915,4 +920,12 @@
     .header-inner { gap: 14px; }
     .topbar span { display: none; }
     .topbar span:first-child { display: inline; }
+  }
+  @media (max-width: 480px) {
+    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .product-info { padding: 10px 10px 12px; }
+    .product-name { font-size: 13px; }
+    .product-desc { font-size: 11px; margin-bottom: 8px; }
+    .price-main { font-size: 22px; }
+    .btn-buy { font-size: 12px; padding: 8px 6px; letter-spacing: 0; }
   }
