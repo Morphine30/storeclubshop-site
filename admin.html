@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Story Club Shop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --verde: #00ff6a; --verde2: #00c44f;
+      --dark: #0a0a0a; --dark2: #111; --dark3: #181818;
+      --card: #141414; --border: #222; --text: #f0f0f0; --muted: #888;
+      --laranja: #ff6a00;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: var(--dark); color: var(--text); font-family: 'Barlow', sans-serif; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--dark2); border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .logo-text {
+      font-family: 'Bebas Neue', cursive; font-size: 22px;
+      letter-spacing: 2px; color: var(--text);
+    }
+    .logo-text span { color: var(--verde); }
+    .admin-badge {
+      background: rgba(0,255,106,.12); border: 1px solid rgba(0,255,106,.3);
+      color: var(--verde); font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+    }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    .btn-site {
+      color: var(--muted); text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-size: 13px; text-transform: uppercase; letter-spacing: .5px;
+      padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px;
+      transition: all .2s;
+    }
+    .btn-site:hover { border-color: var(--verde); color: var(--verde); }
+
+    /* ── LAYOUT ── */
+    .admin-layout {
+      max-width: 1400px; margin: 0 auto;
+      padding: 32px 24px;
+      display: grid; grid-template-columns: 1fr 480px; gap: 28px;
+    }
+
+    /* ── LISTA ── */
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .panel-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-title {
+      font-family: 'Bebas Neue', cursive; font-size: 22px; letter-spacing: 1px;
+    }
+    .panel-count {
+      color: var(--muted); font-size: 13px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    }
+    .product-list { padding: 16px; display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 180px); overflow-y: auto; }
+    .product-list::-webkit-scrollbar { width: 4px; }
+    .product-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .item {
+      background: var(--dark3); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      transition: border-color .2s;
+    }
+    .item:hover { border-color: rgba(0,255,106,.3); }
+    .item-img {
+      width: 56px; height: 56px; flex: 0 0 56px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    .item-img img { width: 100%; height: 100%; object-fit: cover; }
+    .item-info { flex: 1; min-width: 0; }
+    .item-nome {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 14px; text-transform: uppercase; letter-spacing: .3px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .item-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .item-preco { color: var(--verde); font-weight: 700; font-size: 15px; }
+    .item-cat {
+      color: var(--muted); font-size: 11px;
+      background: var(--card); border: 1px solid var(--border);
+      padding: 2px 8px; border-radius: 4px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .3px;
+    }
+    .item-secao {
+      color: var(--muted); font-size: 11px;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+    .item-actions { display: flex; gap: 8px; flex: 0 0 auto; }
+    .btn-edit, .btn-del {
+      padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 12px; cursor: pointer; text-transform: uppercase;
+      letter-spacing: .3px; transition: all .2s;
+    }
+    .btn-edit { background: transparent; color: var(--text); }
+    .btn-edit:hover { border-color: var(--verde); color: var(--verde); }
+    .btn-del  { background: transparent; color: var(--muted); }
+    .btn-del:hover  { border-color: #ff4444; color: #ff4444; }
+
+    .list-empty { padding: 48px; text-align: center; color: var(--muted); font-size: 14px; }
+
+    /* ── FORM ── */
+    #formPanel { position: sticky; top: 88px; align-self: start; }
+    .form-title { font-family: 'Bebas Neue', cursive; font-size: 22px; letter-spacing: 1px; }
+
+    form { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 160px); overflow-y: auto; }
+    form::-webkit-scrollbar { width: 4px; }
+    form::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: var(--dark3); border: 1.5px solid var(--border);
+      border-radius: 6px; color: var(--text);
+      font-family: 'Barlow', sans-serif; font-size: 14px;
+      padding: 9px 12px; outline: none; transition: border .2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--verde); }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .form-group select option { background: var(--dark3); }
+
+    /* ── Image upload ── */
+    .upload-area {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 20px; text-align: center; cursor: pointer;
+      transition: border-color .2s; position: relative;
+    }
+    .upload-area:hover { border-color: var(--verde); }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 32px; margin-bottom: 8px; }
+    .upload-label {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted);
+    }
+    .upload-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    #imgPreviewWrap { display: none; position: relative; }
+    #imgPreview {
+      width: 100%; max-height: 160px; object-fit: cover;
+      border-radius: 8px; border: 1px solid var(--border);
+    }
+    .btn-remove-img {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,.7); border: 1px solid var(--border);
+      color: var(--text); border-radius: 6px; padding: 4px 10px;
+      font-size: 12px; cursor: pointer;
+    }
+    .btn-remove-img:hover { color: #ff4444; border-color: #ff4444; }
+
+    /* ── Form buttons ── */
+    .form-actions { display: flex; gap: 10px; padding-bottom: 8px; }
+    .btn-save {
+      flex: 1; background: var(--verde); color: #000;
+      border: none; border-radius: 8px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 15px; letter-spacing: .5px; text-transform: uppercase;
+      padding: 12px; cursor: pointer; transition: all .2s;
+    }
+    .btn-save:hover { background: var(--verde2); }
+    .btn-cancel {
+      background: transparent; color: var(--muted); border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 15px; letter-spacing: .5px; text-transform: uppercase;
+      padding: 12px 20px; cursor: pointer; transition: all .2s;
+    }
+    .btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center;
+    }
+    .toast {
+      background: var(--card); border: 1px solid var(--border); color: var(--text);
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 15px;
+      padding: 10px 24px; border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      opacity: 0; transform: translateY(12px);
+      transition: opacity .25s, transform .25s; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.ok   { border-color: var(--verde); }
+    .toast.erro { border-color: #ff4444; }
+
+    @media (max-width: 1024px) {
+      .admin-layout { grid-template-columns: 1fr; }
+      #formPanel { position: static; }
+      .product-list { max-height: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo-text">Story<span>Club</span> Shop</div>
+    <span class="admin-badge">Painel Admin</span>
+  </div>
+  <div class="header-actions">
+    <a href="index.html" class="btn-site">← Ver Site</a>
+  </div>
+</header>
+
+<div class="admin-layout">
+
+  <!-- ── LISTA DE PRODUTOS ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Produtos Cadastrados</span>
+      <span class="panel-count" id="panelCount">0 produtos</span>
+    </div>
+    <div class="product-list" id="productList">
+      <div class="list-empty">Carregando produtos...</div>
+    </div>
+  </div>
+
+  <!-- ── FORMULÁRIO ── -->
+  <div class="panel" id="formPanel">
+    <div class="panel-header">
+      <span class="panel-title" id="formTitle">➕ Novo Produto</span>
+    </div>
+    <form id="produtoForm" onsubmit="submitForm(event)">
+
+      <div class="form-group">
+        <label>Nome *</label>
+        <input name="nome" id="nome" required placeholder="Ex: CinePro HD — Projetor Portátil">
+      </div>
+
+      <div class="form-group">
+        <label>Descrição *</label>
+        <textarea name="descricao" id="descricao" required placeholder="Breve descrição do produto..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Preço (R$) *</label>
+          <input name="preco" id="preco" type="number" step="0.01" min="0" required placeholder="99.90">
+        </div>
+        <div class="form-group">
+          <label>Preço Antigo (R$)</label>
+          <input name="precoAntigo" id="precoAntigo" type="number" step="0.01" min="0" placeholder="149.90">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Parcelas</label>
+        <input name="parcelas" id="parcelas" placeholder="Ex: 6x de R$16,50">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Categoria *</label>
+          <select name="categoria" id="categoria" required>
+            <option value="">Selecione...</option>
+            <option>Eletrônicos</option>
+            <option>Beleza</option>
+            <option>Bem-Estar</option>
+            <option>Eletrodomésticos</option>
+            <option>Casa e Cozinha</option>
+            <option>Coleção Copa</option>
+            <option>Geral</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Seção</label>
+          <select name="secao" id="secao">
+            <option value="mais-vendidos">Mais Vendidos</option>
+            <option value="novidades">Novidades</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Badge (ex: 🔥 Viral)</label>
+          <input name="badge" id="badge" placeholder="🔥 Viral">
+        </div>
+        <div class="form-group">
+          <label>Desconto (ex: -35%)</label>
+          <input name="badgeOff" id="badgeOff" placeholder="-35%">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Estrelas (1–5)</label>
+          <select name="estrelas" id="estrelas">
+            <option value="5">★★★★★</option>
+            <option value="4">★★★★☆</option>
+            <option value="3">★★★☆☆</option>
+            <option value="2">★★☆☆☆</option>
+            <option value="1">★☆☆☆☆</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nº Avaliações</label>
+          <input name="avaliacoes" id="avaliacoes" type="number" min="0" placeholder="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Emoji (placeholder sem foto)</label>
+        <input name="emoji" id="emoji" placeholder="📦" maxlength="4">
+      </div>
+
+      <!-- Image upload -->
+      <div class="form-group">
+        <label>Imagem do Produto</label>
+        <div id="imgPreviewWrap">
+          <img id="imgPreview" src="" alt="Preview">
+          <button type="button" class="btn-remove-img" onclick="removerImagem()">✕ Remover</button>
+        </div>
+        <div class="upload-area" id="uploadArea">
+          <input type="file" name="imagem" id="imgInput" accept="image/*" onchange="previewImagem(this)">
+          <div class="upload-icon">🖼️</div>
+          <div class="upload-label">Clique ou arraste a imagem aqui</div>
+          <div class="upload-hint">JPG, PNG, WEBP — máx. 5 MB</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-save" id="btnSave">💾 Salvar Produto</button>
+        <button type="button" class="btn-cancel" id="btnCancel" onclick="cancelarEdicao()" style="display:none">Cancelar</button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="config.js"></script>
+<script>
+  const API = window.API_URL || 'http://localhost:3000';
+  let produtos = [];
+  let editandoId = null;
+  let imagemRemovida = false;
+
+  async function carregarProdutos() {
+    try {
+      const res = await fetch(`${API}/api/produtos`);
+      produtos = await res.json();
+      renderLista();
+    } catch {
+      document.getElementById('productList').innerHTML =
+        '<div class="list-empty">⚠️ Backend offline. Inicie a API com <strong>npm run dev</strong> em <code>minha-api</code>.</div>';
+    }
+  }
+
+  function renderLista() {
+    const list = document.getElementById('productList');
+    document.getElementById('panelCount').textContent = `${produtos.length} produto${produtos.length !== 1 ? 's' : ''}`;
+
+    if (produtos.length === 0) {
+      list.innerHTML = '<div class="list-empty">Nenhum produto cadastrado. Adicione o primeiro!</div>';
+      return;
+    }
+
+    list.innerHTML = produtos.map(p => `
+      <div class="item">
+        <div class="item-img">
+          ${p.imagem ? `<img src="${p.imagem.startsWith('http') ? p.imagem : API + p.imagem}" alt="${esc(p.nome)}">` : p.emoji || '📦'}
+        </div>
+        <div class="item-info">
+          <div class="item-nome">${esc(p.nome)}</div>
+          <div class="item-meta">
+            <span class="item-preco">R$${p.preco.toFixed(2).replace('.', ',')}</span>
+            <span class="item-cat">${esc(p.categoria)}</span>
+            <span class="item-secao">${p.secao === 'novidades' ? '✨ Novidades' : '🔥 Mais Vendidos'}</span>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="btn-edit" onclick="editarProduto(${p.id})">✏️ Editar</button>
+          <button class="btn-del"  onclick="excluirProduto(${p.id})">🗑️</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function editarProduto(id) {
+    const p = produtos.find(x => x.id === id);
+    if (!p) return;
+    editandoId = id;
+    imagemRemovida = false;
+
+    document.getElementById('formTitle').textContent = '✏️ Editar Produto';
+    document.getElementById('btnSave').textContent = '💾 Atualizar Produto';
+    document.getElementById('btnCancel').style.display = '';
+
+    document.getElementById('nome').value       = p.nome;
+    document.getElementById('descricao').value  = p.descricao;
+    document.getElementById('preco').value      = p.preco;
+    document.getElementById('precoAntigo').value= p.precoAntigo || '';
+    document.getElementById('parcelas').value   = p.parcelas || '';
+    document.getElementById('categoria').value  = p.categoria;
+    document.getElementById('secao').value      = p.secao || 'mais-vendidos';
+    document.getElementById('badge').value      = p.badge || '';
+    document.getElementById('badgeOff').value   = p.badgeOff || '';
+    document.getElementById('estrelas').value   = p.estrelas;
+    document.getElementById('avaliacoes').value = p.avaliacoes;
+    document.getElementById('emoji').value      = p.emoji || '📦';
+
+    if (p.imagem) {
+      const src = p.imagem.startsWith('http') ? p.imagem : `${API}${p.imagem}`;
+      document.getElementById('imgPreview').src = src;
+      document.getElementById('imgPreviewWrap').style.display = 'block';
+      document.getElementById('uploadArea').style.display     = 'none';
+    } else {
+      document.getElementById('imgPreviewWrap').style.display = 'none';
+      document.getElementById('uploadArea').style.display     = '';
+    }
+
+    document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function excluirProduto(id) {
+    const p = produtos.find(x => x.id === id);
+    if (!confirm(`Excluir "${p?.nome}"?`)) return;
+    const res = await fetch(`${API}/api/produtos/${id}`, { method: 'DELETE' });
+    if (res.ok) { await carregarProdutos(); toast('Produto excluído!'); }
+    else toast('Erro ao excluir produto.', 'erro');
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    // Se estava editando e não selecionou nova imagem, remove o campo para não sobrescrever
+    if (editandoId && !document.getElementById('imgInput').files[0] && !imagemRemovida) {
+      formData.delete('imagem');
+    }
+
+    const url    = editandoId ? `${API}/api/produtos/${editandoId}` : `${API}/api/produtos`;
+    const method = editandoId ? 'PUT' : 'POST';
+    const foiEdicao = editandoId !== null;
+
+    try {
+      const res = await fetch(url, { method, body: formData });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.erro || 'Erro desconhecido');
+      }
+      cancelarEdicao();
+      form.reset();
+      await carregarProdutos();
+      toast(foiEdicao ? '✅ Produto atualizado!' : '✅ Produto adicionado!');
+    } catch (err) {
+      toast('❌ ' + err.message, 'erro');
+    }
+  }
+
+  function cancelarEdicao() {
+    editandoId = null;
+    imagemRemovida = false;
+    document.getElementById('formTitle').textContent   = '➕ Novo Produto';
+    document.getElementById('btnSave').textContent     = '💾 Salvar Produto';
+    document.getElementById('btnCancel').style.display = 'none';
+    document.getElementById('produtoForm').reset();
+    document.getElementById('imgPreviewWrap').style.display = 'none';
+    document.getElementById('uploadArea').style.display     = '';
+  }
+
+  function previewImagem(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('imgPreview').src = e.target.result;
+      document.getElementById('imgPreviewWrap').style.display = 'block';
+      document.getElementById('uploadArea').style.display     = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  function removerImagem() {
+    document.getElementById('imgInput').value = '';
+    document.getElementById('imgPreviewWrap').style.display = 'none';
+    document.getElementById('uploadArea').style.display     = '';
+    imagemRemovida = true;
+  }
+
+  function toast(msg, tipo = 'ok') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${tipo}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+  }
+
+  function esc(str) {
+    return String(str ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  carregarProdutos();
+</script>
+</body>
+</html>

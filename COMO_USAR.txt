@@ -1,0 +1,208 @@
+================================================================
+   STORY CLUB SHOP — COMO RODAR AGORA (MODO LOCAL)
+================================================================
+Siga na ordem. Nao pule nenhum passo.
+================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 1 — Instalar o Node.js (so faz uma vez)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai em: https://nodejs.org
+  2. Clica no botao verde "LTS"
+  3. Instala (fica clicando Next ate terminar)
+  4. Reinicia o computador
+  5. Para confirmar, abre o terminal e digita:
+       node -v
+     Deve aparecer um numero tipo: v20.0.0
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 2 — Instalar o VS Code (so faz uma vez)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai em: https://code.visualstudio.com
+  2. Clica em "Download for Windows"
+  3. Instala normalmente
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 3 — Instalar Live Server no VS Code (so faz uma vez)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Abre o VS Code
+  2. Clica no icone de 4 quadradinhos (Extensions) na barra esquerda
+  3. Pesquisa: Live Server
+  4. Instala o primeiro resultado (de Ritwick Dey)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 4 — Criar as contas gratuitas (so faz uma vez)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Precisa de 3 contas. Anota os dados de cada uma.
+
+  [ A ] MongoDB Atlas — banco de dados
+        Site: https://www.mongodb.com/atlas
+        - Cria a conta, escolhe o plano FREE (M0)
+        - Cria um usuario com usuario e senha proprios
+        - Em "Network Access" adiciona o IP: 0.0.0.0/0
+        - Em "Connect" > "Drivers" copia a string de conexao:
+          mongodb+srv://usuario:senha@cluster0.xxxxx.mongodb.net/storeclubshop
+
+  [ B ] Cloudinary — guardar as imagens dos produtos
+        Site: https://cloudinary.com
+        - Cria a conta gratis
+        - No Dashboard anota os 3 valores:
+          Cloud Name / API Key / API Secret
+
+  [ C ] MercadoPago — receber pagamentos
+        Site: https://www.mercadopago.com.br
+        - Cria a conta
+        - Vai em: mercadopago.com.br/developers/panel
+        - Cria uma aplicacao
+        - Em "Credenciais de teste" copia o Access Token (comeca com TEST-)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 5 — Criar o arquivo .env com suas credenciais
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai na pasta: C:\Users\Morph\minha-api
+  2. Voce vai ver o arquivo: .env.example
+  3. Faz uma COPIA desse arquivo na mesma pasta
+  4. Renomeia a copia para: .env
+     (so .env, sem o ".example" no nome)
+  5. Abre o arquivo .env com o Bloco de Notas
+  6. Substitui cada valor pelo dado real que voce anotou:
+
+     MONGODB_URI=mongodb+srv://seuusuario:suasenha@cluster0.xxxxx.mongodb.net/storeclubshop
+     CLOUDINARY_CLOUD_NAME=seu_cloud_name_aqui
+     CLOUDINARY_API_KEY=000000000000000
+     CLOUDINARY_API_SECRET=seu_api_secret_aqui
+     MP_ACCESS_TOKEN=TEST-seu_token_aqui
+     FRONTEND_URL=http://127.0.0.1:5500
+     PORT=3000
+
+  7. Salva e fecha
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 6 — Ligar o servidor
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Abre o terminal
+     (aperta Windows + R, digita: cmd, aperta Enter)
+
+  2. Digita e aperta Enter:
+       cd C:\Users\Morph\minha-api
+
+  3. Digita e aperta Enter:
+       npm run dev
+
+  4. Aguarda aparecer essas duas mensagens:
+       MongoDB conectado
+       Servidor rodando em http://localhost:3000
+
+     Se aparecer tambem:
+       12 produtos inseridos no banco.
+     E porque e a primeira vez. Normal, os produtos foram cadastrados.
+
+  IMPORTANTE: Deixa essa janela aberta enquanto usa o site!
+  Para parar o servidor: aperta Ctrl + C na janela do terminal.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 7 — Abrir o site
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Abre o VS Code
+  2. Vai em: File > Open Folder
+  3. Seleciona a pasta: C:\Users\Morph\Desktop\storyclubshop-site
+  4. Clica no arquivo index.html na lista da esquerda
+  5. No canto inferior direito clica em: Go Live
+  6. O navegador abre com o site funcionando!
+     Endereco: http://127.0.0.1:5500
+
+  Para o painel admin, so mudar o endereco para:
+  http://127.0.0.1:5500/admin.html
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ROTINA DO DIA A DIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Toda vez que for usar, faz so isso:
+
+  [1] Abre o terminal
+  [2] cd C:\Users\Morph\minha-api
+  [3] npm run dev
+  [4] Deixa o terminal aberto
+  [5] No VS Code, abre storeclubshop-site e clica em Go Live
+  [6] Pronto!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ COMO ADICIONAR UM PRODUTO COM SUA PROPRIA IMAGEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Servidor rodando (passo 6) + site aberto (passo 7)
+  2. No navegador vai para: http://127.0.0.1:5500/admin.html
+  3. Preenche o formulario do lado direito:
+     - Nome, descricao, preco (obrigatorios)
+     - Preco antigo, parcelas (opcional)
+     - Categoria e Secao (onde vai aparecer no site)
+     - Badge: etiqueta colorida ex: 🔥 Viral
+     - Desconto: ex: -30%
+     - Emoji: aparece se nao tiver foto, ex: 📦
+     - Imagem: clica na area pontilhada e escolhe uma foto
+       do seu computador (ate 5MB)
+  4. Clica em "Salvar Produto"
+  5. O produto aparece na lista e no site instantaneamente!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ COMO O CLIENTE COMPRA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Cliente entra no site (index.html)
+  2. Clica em "Comprar Agora" nos produtos que quer
+  3. O numero no icone do carrinho vai aumentando
+  4. Clica no botao do Carrinho (canto direito do header)
+  5. Abre um painel com todos os itens
+  6. Pode aumentar/diminuir quantidade ou remover itens
+  7. Clica em "Finalizar Compra"
+  8. E redirecionado para o MercadoPago
+  9. Paga com PIX, Cartao ou Boleto
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PROBLEMAS COMUNS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  O servidor nao liga / da erro de MongoDB
+    → A MONGODB_URI no .env esta errada. Revisa o passo 5.
+    → O IP 0.0.0.0/0 nao foi liberado no Atlas. Revisa o passo 4A.
+
+  Produtos nao aparecem no site
+    → O servidor nao esta rodando. Faz o passo 6.
+    → Confirma que apareceu "MongoDB conectado" no terminal.
+
+  Imagem nao aparece apos cadastrar produto
+    → As credenciais do Cloudinary no .env estao erradas.
+    → Revisa CLOUDINARY_CLOUD_NAME, API_KEY e API_SECRET.
+
+  Finalizar Compra da erro
+    → O MP_ACCESS_TOKEN no .env esta errado. Pega um novo no passo 4C.
+
+  "Go Live" nao aparece no VS Code
+    → A extensao Live Server nao foi instalada. Faz o passo 3.
+
+  npm nao reconhecido
+    → Node.js nao instalado ou computador nao reiniciou. Faz o passo 1.
+
+================================================================
+ PARA PUBLICAR ONLINE (Netlify + Render):
+ Leia o arquivo: DEPLOY_ONLINE.txt
+================================================================

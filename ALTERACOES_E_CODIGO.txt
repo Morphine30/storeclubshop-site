@@ -1,0 +1,596 @@
+================================================================
+   STORY CLUB SHOP — TUDO QUE FOI FEITO NO CODIGO
+================================================================
+Descricao completa de cada arquivo criado e alterado.
+================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ VISAO GERAL DA ARQUITETURA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  O projeto tem duas partes separadas:
+
+  FRONTEND (storyclubshop-site/)
+    Arquivos HTML, CSS e JS que o cliente ve no navegador.
+    Roda via Live Server na porta 5500.
+    Fala com o backend via fetch (chamadas HTTP).
+
+  BACKEND (minha-api/)
+    Servidor Node.js com Express.
+    Roda na porta 3000.
+    Conecta ao MongoDB (banco de dados na nuvem).
+    Conecta ao Cloudinary (armazenamento de imagens).
+    Conecta ao MercadoPago (pagamentos).
+
+  FLUXO DE UMA COMPRA:
+    Navegador → script.js → API Express → MongoDB/Cloudinary/MercadoPago
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BACKEND — ARQUIVOS CRIADOS (novos)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/.env.example                                      │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Modelo do arquivo de configuracoes. Mostra quais variaveis
+    de ambiente o projeto precisa, sem expor os valores reais.
+
+  Por que existe:
+    O arquivo .env real nao vai para o GitHub (esta no .gitignore)
+    porque contem senhas e tokens. O .env.example e uma "cola"
+    que mostra o formato correto para quem vai configurar o projeto.
+
+  Conteudo (variaveis que precisam ser preenchidas):
+    MONGODB_URI        → string de conexao com o banco Atlas
+    CLOUDINARY_CLOUD_NAME → nome do bucket no Cloudinary
+    CLOUDINARY_API_KEY    → chave publica da API Cloudinary
+    CLOUDINARY_API_SECRET → chave privada da API Cloudinary
+    MP_ACCESS_TOKEN    → token do MercadoPago (TEST- ou APP_USR-)
+    FRONTEND_URL       → URL do site (para liberar CORS)
+    PORT               → porta do servidor (3000 local, auto no Render)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/.gitignore                                        │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Diz ao Git quais arquivos NUNCA devem ser enviados ao GitHub.
+
+  O que ignora:
+    node_modules/  → pasta de dependencias (enorme, reinstalada via npm)
+    uploads/       → pasta de imagens locais (agora usamos Cloudinary)
+    .env           → arquivo com senhas e tokens
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/db.js                                         │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Funcao responsavel por conectar ao MongoDB Atlas usando Mongoose.
+
+  Como funciona:
+    Exporta uma funcao "conectarDB()" que o server.js chama ao iniciar.
+    Usa a variavel MONGODB_URI do .env.
+    Se a conexao falhar, o servidor nem chega a ligar.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/cloudinaryConfig.js                           │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Configura o SDK do Cloudinary com as credenciais do .env.
+    Exporta o objeto cloudinary pronto para uso em outros arquivos.
+
+  Por que separado:
+    Evita repetir a configuracao em varios arquivos. Qualquer
+    arquivo que precisar do Cloudinary so faz: require('../cloudinaryConfig')
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/models/Produto.js                             │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Define a "forma" de um produto no banco de dados MongoDB.
+    E o equivalente a uma tabela em bancos relacionais (MySQL, PostgreSQL).
+
+  Campos definidos:
+    id           → numero unico de identificacao (1, 2, 3...)
+    nome         → nome do produto (obrigatorio)
+    descricao    → descricao curta (obrigatorio)
+    preco        → preco atual em reais (obrigatorio)
+    precoAntigo  → preco riscado (opcional)
+    parcelas     → texto de parcelamento, ex: "6x de R$16,50"
+    estrelas     → avaliacao de 1 a 5
+    avaliacoes   → numero de avaliacoes recebidas
+    badge        → etiqueta colorida, ex: "🔥 Viral"
+    badgeOff     → badge de desconto, ex: "-35%"
+    categoria    → Eletrônicos, Beleza, etc
+    emoji        → emoji placeholder quando nao tem foto
+    imagem       → URL da imagem no Cloudinary (https://...)
+    imagemPublicId → ID interno do Cloudinary (para deletar a imagem)
+    secao        → onde aparece: "mais-vendidos" ou "novidades"
+
+  Configuracao especial:
+    { id: false }      → desativa o id virtual do Mongoose para nao
+                         conflitar com o campo id numerico customizado
+    toJSON transform   → remove _id e __v das respostas da API
+                         (campos internos do MongoDB, nao precisamos ver)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/seed.js                                       │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Script que popula o banco com os 12 produtos iniciais.
+    Roda automaticamente quando o servidor liga pela primeira vez.
+
+  Como funciona:
+    Conta quantos produtos tem no banco.
+    Se for zero, insere todos os 12 do arquivo produtos.json.
+    Se ja tiver produtos, nao faz nada.
+
+  Resultado:
+    Na primeira vez que ligar o servidor, os produtos aparecem
+    automaticamente. Nao precisa cadastrar manualmente.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/data/produtos.json                            │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Lista dos 12 produtos originais do site em formato JSON.
+    Serve como fonte de dados para o seed.js popular o banco.
+
+  Produtos incluidos:
+    1. CinePro HD — Projetor Portátil         R$197
+    2. Sonic Pro — Escova Elétrica            R$89
+    3. 3D Premium — Luminária Lua             R$79
+    4. Joelheira Ortopédica Premium           R$59
+    5. Brow Touch Pro — Depiladora            R$49
+    6. Selador Portátil                       R$39
+    7. Massageador Elétrico Pro               R$99
+    8. Kit Torcedor Brasil — 12 Itens         R$149
+    9. Aspirador Portátil Sem Fio             R$129
+    10. Copo Térmico Brasil 510ml             R$59
+    11. Bandeirão Brasil 1,50m x 0,90m       R$45
+    12. Selador Térmico Compacto             R$34
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/controllers/produtosController.js             │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    O "cerebro" das operacoes de produtos. Cada funcao cuida
+    de uma acao diferente (listar, criar, editar, deletar).
+
+  Funcoes:
+
+    listar()
+      Busca todos os produtos no MongoDB e retorna em JSON.
+      Ordenados pelo campo id (do menor para o maior).
+
+    obter()
+      Busca um produto especifico pelo id numerico.
+      Retorna erro 404 se nao encontrar.
+
+    criar()
+      Pega os dados do formulario (req.body).
+      Se tiver imagem, faz upload para o Cloudinary:
+        - Recebe o arquivo em memoria (buffer)
+        - Converte para base64
+        - Envia para o Cloudinary via API
+        - Guarda a URL segura (https://res.cloudinary.com/...)
+        - Guarda o public_id para poder deletar depois
+      Calcula o proximo id (max id atual + 1).
+      Salva o produto no MongoDB.
+
+    atualizar()
+      Busca o produto pelo id.
+      Se chegou nova imagem:
+        - Deleta a imagem antiga do Cloudinary (usa imagemPublicId)
+        - Faz upload da nova imagem
+      Atualiza todos os campos que vieram no formulario.
+      Salva no MongoDB.
+
+    deletar()
+      Busca o produto pelo id.
+      Se tinha imagem, deleta do Cloudinary.
+      Remove o produto do MongoDB.
+
+  Funcao auxiliar uploadImagem():
+    Recebe o buffer do arquivo e o tipo MIME.
+    Converte para base64 no formato data:image/jpeg;base64,...
+    Envia para o Cloudinary com a pasta "storeclubshop".
+    Retorna o resultado com secure_url e public_id.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/controllers/pagamentoController.js            │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Cria preferencias de pagamento no MercadoPago.
+
+  Como funciona:
+    Recebe do frontend: lista de itens do carrinho + URL base do site.
+    Monta o objeto de preferencia com:
+      items: cada produto com nome, preco e quantidade
+      back_urls: para onde redirecionar apos pagar/cancelar/aguardar
+      statement_descriptor: nome que aparece na fatura do cartao
+      external_reference: ID unico do pedido (timestamp)
+    Envia para a API do MercadoPago.
+    Retorna ao frontend:
+      sandbox_init_point → URL de pagamento em modo teste
+      init_point         → URL de pagamento real (producao)
+
+  Seguranca:
+    O token do MercadoPago fica no .env, nunca no codigo-fonte.
+    Se o token nao estiver configurado, imprime aviso no terminal.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/routes/produtos.js                            │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Define os endpoints (URLs) da API de produtos.
+    Configura o multer para aceitar upload de imagens.
+
+  Endpoints criados:
+    GET    /api/produtos        → lista todos os produtos
+    GET    /api/produtos/:id    → retorna um produto pelo id
+    POST   /api/produtos        → cria novo produto (com imagem opcional)
+    PUT    /api/produtos/:id    → atualiza produto (com imagem opcional)
+    DELETE /api/produtos/:id    → deleta produto
+
+  Configuracao do multer:
+    Usa memoryStorage() → guarda o arquivo em RAM (nao salva em disco)
+    Limite de 5MB por arquivo
+    Aceita apenas arquivos com mimetype "image/*"
+
+  Diferenca da versao anterior:
+    Antes: multer.diskStorage() salvava em C:\minha-api\uploads\
+    Agora: multer.memoryStorage() guarda em memoria, Cloudinary salva
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/routes/pagamento.js                           │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Define o endpoint de pagamento.
+
+  Endpoint:
+    POST /api/pagamento/criar-preferencia
+      Recebe: { itens: [...], urlBase: "https://..." }
+      Retorna: { id, init_point, sandbox_init_point }
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BACKEND — ARQUIVOS ALTERADOS (existiam antes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/app.js                                        │
+└─────────────────────────────────────────────────────────────┘
+  O que mudou:
+    ANTES: importava apenas usuarios e configurava CORS fixo
+    DEPOIS:
+      - Adicionou rota /api/produtos
+      - Adicionou rota /api/pagamento
+      - CORS agora le a variavel FRONTEND_URL do .env
+        (aceita localhost em desenvolvimento E o Netlify em producao)
+      - Removeu: serve de pasta uploads/ estatica (Cloudinary faz isso)
+      - Removeu: criacao automatica de pasta uploads/
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/server.js                                     │
+└─────────────────────────────────────────────────────────────┘
+  O que mudou:
+    ANTES: so chamava app.listen() direto
+    DEPOIS:
+      - Carrega o .env com require('dotenv').config() logo no inicio
+      - Chama conectarDB() para conectar ao MongoDB ANTES de ligar o servidor
+      - Chama seed() para popular o banco se estiver vazio
+      - Se o MongoDB falhar, o processo para com process.exit(1)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/package.json                                      │
+└─────────────────────────────────────────────────────────────┘
+  O que mudou:
+    - Corrigiu o caminho: "src/server.js" → "scr/server.js"
+      (era um erro de digitacao, a pasta e "scr" nao "src")
+    - Adicionou dependencias:
+        cors        → libera acesso de outros dominios (Netlify → Render)
+        multer      → faz o upload de arquivos via formulario
+        mercadopago → SDK oficial do MercadoPago para Node.js
+        mongoose    → ODM para MongoDB (facilita criar e buscar dados)
+        cloudinary  → SDK do Cloudinary para fazer upload de imagens
+        dotenv      → le o arquivo .env e injeta as variaveis no processo
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ FRONTEND — ARQUIVOS CRIADOS (novos)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│ storeclubshop-site/config.js                                │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Define a URL da API de acordo com onde o site esta rodando.
+
+  Como funciona:
+    Verifica o hostname do navegador:
+      Se for localhost ou 127.0.0.1 → usa http://localhost:3000
+      Se for qualquer outro (Netlify) → usa https://SUA-API.onrender.com
+
+  Por que existe:
+    Um arquivo HTML nao pode ler variaveis de ambiente.
+    Esse arquivo faz o papel de "config dinamica" para o frontend.
+    Em desenvolvimento funciona sem mexer em nada.
+    Em producao o dev troca so a URL do Render uma vez.
+
+  Onde e incluido:
+    Em index.html e admin.html, ANTES do script.js e do script inline.
+    Assim window.API_URL ja existe quando os outros scripts rodarem.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ storeclubshop-site/admin.html                               │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Painel de administracao completo. Pagina separada do site
+    principal, acessivel em /admin.html.
+
+  Funcionalidades:
+    LISTA DE PRODUTOS (lado esquerdo):
+      - Mostra todos os produtos cadastrados no banco
+      - Exibe imagem (ou emoji), nome, preco e categoria
+      - Botao "Editar" preenche o formulario com os dados do produto
+      - Botao de lixeira deleta o produto com confirmacao
+
+    FORMULARIO (lado direito):
+      - Nome, Descricao, Preco, Preco Antigo, Parcelas
+      - Categoria (select), Secao (Mais Vendidos ou Novidades)
+      - Badge e Badge de Desconto
+      - Estrelas e Numero de Avaliacoes
+      - Emoji placeholder
+      - Upload de Imagem:
+          Area com pontilhado onde se clica ou arrasta a foto
+          Preview instantaneo da imagem antes de salvar
+          Botao "Remover" para trocar a imagem
+      - Botao "Salvar Produto" (adicionar) ou "Atualizar Produto" (editar)
+      - Botao "Cancelar" aparece so no modo de edicao
+
+    MODO ADICIONAR vs EDITAR:
+      Ao clicar em Editar, o formulario preenche automaticamente
+      todos os campos do produto selecionado.
+      Se nao selecionar nova imagem, a imagem anterior e mantida.
+      Ao clicar em Cancelar, o formulario volta ao estado vazio.
+
+    NOTIFICACOES (Toast):
+      Mensagem verde no rodape ao salvar/atualizar com sucesso.
+      Mensagem vermelha ao ocorrer erro.
+
+  Visual:
+    Dark theme igual ao site principal (preto e verde neon).
+    Layout em duas colunas (lista + formulario).
+    Responsivo: empilha em tela menor.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ storeclubshop-site/netlify.toml                             │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Arquivo de configuracao do Netlify.
+
+  O que faz:
+    Define que a pasta raiz "." e publicada (site estatico sem build).
+    Adiciona cabecalhos de seguranca em todas as paginas:
+      X-Frame-Options: impede o site de ser embutido em iframes
+      X-Content-Type-Options: impede leitura errada de tipos de arquivo
+      Referrer-Policy: controla quais informacoes sao enviadas ao clicar links
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ FRONTEND — ARQUIVOS ALTERADOS (existiam antes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│ storeclubshop-site/index.html                               │
+└─────────────────────────────────────────────────────────────┘
+  O que mudou:
+    Adicionada a linha antes do script.js:
+      <script src="config.js"></script>
+    Isso garante que window.API_URL existe quando o script.js rodar.
+
+  O que NAO mudou:
+    Todo o HTML dos produtos, header, nav, footer.
+    A estrutura continua igual, os produtos agora sao
+    injetados pelo JavaScript em vez de estar fixos no HTML.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ storeclubshop-site/script.js                                │
+└─────────────────────────────────────────────────────────────┘
+  O que era antes:
+    - Smooth scroll
+    - Incrementar contador do carrinho (so visual, sem funcao real)
+    - Nav ativo
+    - Sticky header
+    - Scroll reveal
+    - Busca simples
+
+  O que e agora:
+    Completamente reescrito. Muito mais funcional.
+
+  NOVO — Carregamento dinamico de produtos:
+    Faz um fetch para GET /api/produtos ao abrir a pagina.
+    Recebe a lista do banco de dados MongoDB.
+    Renderiza os cards dinamicamente no HTML.
+    Se a API estiver offline, mantem o HTML estatico original.
+    Suporta imagens do Cloudinary (URL https://) e emojis.
+
+  NOVO — Carrinho completo:
+    Estado salvo no localStorage (persiste se fechar o navegador).
+    adicionarAoCarrinho(id): adiciona produto ou aumenta quantidade.
+    removerDoCarrinho(id): remove completamente.
+    alterarQtd(id, delta): aumenta/diminui quantidade.
+    Ao chegar em 0, o produto e removido automaticamente.
+    Badge no header mostra a quantidade total de itens.
+
+  NOVO — Sidebar do carrinho:
+    HTML injetado via JavaScript (nao precisou alterar o index.html).
+    Abre ao clicar no botao do carrinho.
+    Fecha ao clicar no X ou no overlay escurecido.
+    Mostra: imagem/emoji, nome, preco total por item, controles de qtd.
+    Mostra total geral no rodape.
+    Estado vazio: mensagem + link para ver produtos.
+
+  NOVO — Checkout com MercadoPago:
+    Ao clicar em "Finalizar Compra":
+      Monta a lista de itens do carrinho.
+      Faz POST para /api/pagamento/criar-preferencia.
+      Recebe a URL de pagamento do MercadoPago.
+      Redireciona o usuario para a tela de pagamento.
+    Botao fica desabilitado enquanto aguarda resposta da API.
+
+  NOVO — Toast de notificacao:
+    Mensagem animada na base da tela ao adicionar produto ao carrinho.
+    Verde para sucesso, vermelho para erro.
+
+  MANTIDO — Scroll reveal, sticky header, busca, nav ativo.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ storeclubshop-site/style.css                                │
+└─────────────────────────────────────────────────────────────┘
+  O que mudou:
+    Adicionados varios blocos de CSS novos ao final do arquivo.
+    O CSS original nao foi alterado.
+
+  NOVO — Cart Sidebar:
+    .cart-overlay: fundo escurecido por tras do painel
+    .cart-sidebar: painel lateral deslizante da direita
+    Animacao de entrada/saida com transform: translateX
+    .cart-item: cada linha de produto no carrinho
+    .cart-item-img: miniatura da imagem/emoji
+    .cart-item-controls: botoes + / - de quantidade
+
+  NOVO — Cart Empty:
+    Estado vazio com icone grande e mensagem
+
+  NOVO — Cart Footer:
+    Total em verde com fonte Bebas Neue
+    Botao "Finalizar Compra" verde, largura total
+
+  NOVO — Toast:
+    Posicionado no centro-baixo da tela
+    Animacao de subida com opacity
+    Cor verde para ok, vermelha para erro
+
+  NOVO — Product image real:
+    .product-img img com object-fit: cover
+    Para quando o produto tem foto real em vez de emoji
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ DEPENDENCIAS INSTALADAS (npm)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  cors@2.8.6
+    Middleware que adiciona cabecalhos HTTP permitindo que o
+    frontend (porta 5500 ou Netlify) acesse o backend (porta 3000).
+    Sem isso o navegador bloquearia todas as chamadas.
+
+  multer@2.1.1
+    Middleware para receber arquivos (imagens) via formulario HTML.
+    Configurado com memoryStorage: guarda em RAM em vez de disco.
+
+  mercadopago@3.1.0
+    SDK oficial do MercadoPago para Node.js.
+    Usado para criar preferencias de pagamento (Checkout Pro).
+
+  mongoose@9.6.3
+    ODM (Object Document Mapper) para MongoDB.
+    Permite definir schemas, criar e buscar documentos de forma
+    orientada a objetos em vez de usar queries brutas.
+
+  cloudinary@2.10.0
+    SDK do Cloudinary para Node.js.
+    Usado para fazer upload de imagens e deletar imagens antigas.
+
+  dotenv@17.4.2
+    Le o arquivo .env e injeta as variaveis no process.env.
+    Permite que o codigo use process.env.MONGODB_URI em vez de
+    colocar a senha direto no codigo-fonte.
+
+  nodemon@3.1.14 (desenvolvimento)
+    Reinicia o servidor automaticamente quando um arquivo e salvo.
+    Usado apenas com npm run dev. Nao vai para producao.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ RESUMO DE TODAS AS ROTAS DA API
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  GET    /                              health check (API online)
+  GET    /api/produtos                  lista todos os produtos
+  GET    /api/produtos/:id              retorna produto por id
+  POST   /api/produtos                  cria produto (multipart/form-data)
+  PUT    /api/produtos/:id              atualiza produto (multipart/form-data)
+  DELETE /api/produtos/:id              deleta produto
+
+  POST   /api/pagamento/criar-preferencia   cria preferencia MercadoPago
+         Body: { itens: [...], urlBase: "https://..." }
+         Return: { id, init_point, sandbox_init_point }
+
+  GET    /api/usuarios                  lista usuarios (existia antes)
+  POST   /api/usuarios                  cria usuario (existia antes)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ARVORE COMPLETA DE ARQUIVOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  minha-api/
+  ├── .env.example          [NOVO] modelo de variaveis de ambiente
+  ├── .gitignore            [NOVO] protege .env e node_modules
+  ├── package.json          [ALTERADO] novos pacotes, script corrigido
+  └── scr/
+      ├── app.js            [ALTERADO] cors dinamico, novas rotas
+      ├── server.js         [ALTERADO] dotenv + conexao MongoDB + seed
+      ├── db.js             [NOVO] conecta ao MongoDB Atlas
+      ├── cloudinaryConfig.js [NOVO] configura SDK do Cloudinary
+      ├── seed.js           [NOVO] popula banco na primeira vez
+      ├── models/
+      │   └── Produto.js    [NOVO] schema do produto no MongoDB
+      ├── controllers/
+      │   ├── produtosController.js   [REESCRITO] usa MongoDB + Cloudinary
+      │   ├── pagamentoController.js  [ALTERADO] usa dotenv
+      │   └── usuariosController.js   [INTOCADO]
+      ├── routes/
+      │   ├── produtos.js   [REESCRITO] multer memoryStorage
+      │   ├── pagamento.js  [NOVO] rota para criar preferencia
+      │   └── usuarios.js   [INTOCADO]
+      └── data/
+          └── produtos.json [NOVO] dados dos 12 produtos iniciais
+
+  storeclubshop-site/
+  ├── index.html            [ALTERADO] adicionado config.js
+  ├── style.css             [ALTERADO] cart sidebar + toast + img
+  ├── script.js             [REESCRITO] produtos dinamicos, carrinho, checkout
+  ├── admin.html            [NOVO] painel de administracao completo
+  ├── config.js             [NOVO] URL da API (local vs producao)
+  ├── netlify.toml          [NOVO] configuracao para deploy no Netlify
+  └── COMO_USAR.txt         [ATUALIZADO] guia para rodar localmente
+
+
+================================================================
+ Arquivos intocados (nao foram modificados em nenhuma sessao):
+   minha-api/scr/controllers/usuariosController.js
+   minha-api/scr/routes/usuarios.js
+   minha-api/scr/data/usuarios.js (se existir)
+================================================================

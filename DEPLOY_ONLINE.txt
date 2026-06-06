@@ -1,0 +1,406 @@
+================================================================
+   STORY CLUB SHOP — COMO PUBLICAR ONLINE
+   Frontend: Netlify | Backend: Render | DB: MongoDB Atlas
+   Imagens: Cloudinary | Pagamentos: MercadoPago
+================================================================
+Siga na ordem. Nao pule etapas.
+================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 1 — Instalar o Git no computador (so uma vez)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai em: https://git-scm.com/download/win
+  2. Baixa e instala (fica clicando Next em tudo, nao muda nada)
+  3. Abre um terminal novo (cmd) e confirma:
+       git --version
+     Deve aparecer algo como: git version 2.47.0
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 2 — Criar conta no GitHub (so uma vez)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  O GitHub e onde o codigo fica guardado na nuvem.
+  O Render e o Netlify vao buscar o codigo de la.
+
+  1. Vai em: https://github.com
+  2. Clica em "Sign up"
+  3. Cria a conta com e-mail e senha
+  4. Confirma o e-mail
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 3 — Criar conta no MongoDB Atlas (banco de dados)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai em: https://www.mongodb.com/atlas
+  2. Clica em "Try Free" e cria a conta
+
+  [ Criar o cluster gratuito ]
+  3. Escolhe o plano M0 (Free, para sempre)
+  4. Provedor: AWS | Regiao: South America (Sao Paulo)
+  5. Nome do cluster: Cluster0 (pode deixar o padrao)
+  6. Clica em "Create"
+
+  [ Criar usuario do banco ]
+  7. Vai aparecer "Security Quickstart"
+  8. Em "Username and Password":
+       Username: storeclubadmin
+       Password: clica em "Autogenerate Secure Password"
+  9. ANOTA o usuario e a senha gerada
+  10. Clica em "Create User"
+
+  [ Liberar acesso de qualquer IP ]
+  11. Na proxima secao "Where would you like to connect from?"
+  12. Clica em "Add My Current IP Address"
+  13. Clica em "Add Entry" e digita o IP: 0.0.0.0/0
+      (isso e necessario para o Render conseguir conectar)
+  14. Clica em "Finish and Close"
+
+  [ Pegar a string de conexao ]
+  15. No menu esquerdo clica em: Database
+  16. Clica em "Connect" no seu cluster
+  17. Clica em "Drivers"
+  18. Em "Add your connection string into your application code"
+      copia o texto que aparece, tipo:
+        mongodb+srv://storeclubadmin:<password>@cluster0.xxxxx.mongodb.net/
+  19. Substitui <password> pela senha que voce anotou
+  20. Adiciona o nome do banco no final: storeclubshop
+  21. Resultado final (guarda isso):
+        mongodb+srv://storeclubadmin:SUASENHA@cluster0.xxxxx.mongodb.net/storeclubshop
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 4 — Criar conta no Cloudinary (imagens dos produtos)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai em: https://cloudinary.com
+  2. Clica em "Sign Up for Free"
+  3. Cria a conta
+  4. Depois de entrar, vai para o Dashboard
+  5. Na tela principal voce ve tres informacoes:
+       Cloud Name:  xxxxxxxxx
+       API Key:     000000000000000
+       API Secret:  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  6. ANOTA OS TRES VALORES
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 5 — Pegar o token do MercadoPago
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  (Se ja tem conta no MercadoPago, pula para o item 3)
+
+  1. Vai em: https://www.mercadopago.com.br
+  2. Cria a conta se nao tiver
+  3. Acessa: https://www.mercadopago.com.br/developers/panel
+  4. Clica em "Suas aplicacoes" > "Criar aplicacao"
+  5. Nome: storeclubshop | Clica em "Criar"
+  6. Dentro da aplicacao, clica em "Credenciais de teste"
+  7. Copia o Access Token (comeca com TEST-)
+  8. ANOTA ESSE TOKEN
+
+  OBS: Para receber pagamentos reais (dinheiro de verdade),
+  depois voce troca pelo token de PRODUCAO (APP_USR-...).
+  Por enquanto o TEST- serve para testar.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 6 — Subir o backend para o GitHub
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ Criar o repositorio ]
+  1. Entra em: https://github.com
+  2. Clica no "+" (canto superior direito) > "New repository"
+  3. Repository name: minha-api
+  4. Visibilidade: Private (privado, mais seguro para o backend)
+  5. NAO marca nenhuma opcao adicional
+  6. Clica em "Create repository"
+  7. Copia a URL que aparece:
+       https://github.com/SEUUSUARIO/minha-api.git
+
+  [ Enviar os arquivos ]
+  8. Abre o terminal (cmd)
+  9. Digita cada linha abaixo e aperta Enter:
+
+       cd C:\Users\Morph\minha-api
+       git init
+       git add .
+       git commit -m "primeiro commit"
+       git branch -M main
+       git remote add origin https://github.com/SEUUSUARIO/minha-api.git
+       git push -u origin main
+
+     (substitui SEUUSUARIO pelo seu usuario real do GitHub)
+
+  10. Vai pedir o usuario e senha do GitHub
+      OBS: Se pedir "password" e dar erro, o GitHub usa Token.
+           Va em: GitHub > Settings > Developer Settings >
+           Personal Access Tokens > Tokens (classic) > Generate new
+           Usa esse token como senha no terminal.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 7 — Subir o frontend para o GitHub
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ Criar o repositorio ]
+  1. Mesmo processo do passo anterior
+  2. Nome: storeclubshop-site
+  3. Visibilidade: Public (necessario para o Netlify gratuito)
+
+  [ Enviar os arquivos ]
+  4. No terminal:
+
+       cd C:\Users\Morph\Desktop\storeclubshop-site
+       git init
+       git add .
+       git commit -m "primeiro commit"
+       git branch -M main
+       git remote add origin https://github.com/SEUUSUARIO/storeclubshop-site.git
+       git push -u origin main
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 8 — Publicar o backend no Render
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai em: https://render.com
+  2. Clica em "Get Started for Free"
+  3. Faz login com GitHub (mais facil)
+  4. Clica em "New +" > "Web Service"
+  5. Clica em "Connect" ao lado do repositorio "minha-api"
+
+  [ Configuracoes do servico ]
+  6. Preenche assim:
+       Name:             minha-api
+       Region:           US East (Ohio)  ou  Oregon
+       Branch:           main
+       Root Directory:   (deixa vazio)
+       Runtime:          Node
+       Build Command:    npm install
+       Start Command:    npm start
+       Instance Type:    Free
+
+  NAO clica em "Create Web Service" ainda.
+  Primeiro configura as variaveis de ambiente.
+
+  [ Variaveis de ambiente ]
+  7. Rola a pagina ate a secao "Environment Variables"
+  8. Clica em "Add Environment Variable" para cada linha abaixo:
+
+     ┌──────────────────────┬──────────────────────────────────────┐
+     │ Key                  │ Value                                │
+     ├──────────────────────┼──────────────────────────────────────┤
+     │ MONGODB_URI          │ (string do MongoDB — passo 3)        │
+     │ CLOUDINARY_CLOUD_NAME│ (Cloud Name — passo 4)               │
+     │ CLOUDINARY_API_KEY   │ (API Key — passo 4)                  │
+     │ CLOUDINARY_API_SECRET│ (API Secret — passo 4)               │
+     │ MP_ACCESS_TOKEN      │ (token do MercadoPago — passo 5)     │
+     │ FRONTEND_URL         │ (coloca qualquer coisa por agora,    │
+     │                      │  voce atualiza depois do passo 9)    │
+     └──────────────────────┴──────────────────────────────────────┘
+
+  9. Clica em "Create Web Service"
+
+  [ Aguardar o deploy ]
+  10. O Render vai instalar as dependencias e ligar o servidor.
+      Aguarda 3-5 minutos.
+  11. Quando aparecer "Live" em verde, o backend esta no ar.
+  12. ANOTA a URL que aparece no topo, tipo:
+        https://minha-api-xxxx.onrender.com
+
+  [ Verificar se funcionou ]
+  13. Abre no navegador: https://minha-api-xxxx.onrender.com/api/produtos
+      Deve aparecer a lista dos 12 produtos em JSON.
+      (Na primeira vez pode demorar 30-60s para carregar. Normal.)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 9 — Publicar o frontend no Netlify
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Vai em: https://app.netlify.com
+  2. Cria conta com "Sign up with GitHub"
+  3. Clica em "Add new site" > "Import an existing project"
+  4. Escolhe "Deploy with GitHub"
+  5. Autoriza o acesso e seleciona o repo "storeclubshop-site"
+
+  [ Configuracoes do deploy ]
+  6. Preenche assim:
+       Branch to deploy:  main
+       Build command:     (deixa VAZIO)
+       Publish directory: .   (so um ponto)
+  7. Clica em "Deploy site"
+
+  [ Resultado ]
+  8. Em 1-2 minutos o site aparece com URL tipo:
+       https://amazing-curie-123456.netlify.app
+  9. ANOTA essa URL
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 10 — Conectar o frontend ao backend
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ Atualizar a URL da API no config.js ]
+  1. Abre o arquivo:
+       C:\Users\Morph\Desktop\storeclubshop-site\config.js
+
+  2. Procura a linha com "SUA-API.onrender.com"
+  3. Substitui pela URL real que voce anotou no passo 8:
+       'https://minha-api-xxxx.onrender.com'
+  4. Salva o arquivo (Ctrl+S)
+
+  [ Enviar a atualizacao ]
+  5. No terminal:
+
+       cd C:\Users\Morph\Desktop\storeclubshop-site
+       git add config.js
+       git commit -m "conectar API do Render"
+       git push
+
+  6. O Netlify detecta o push e republica em 1-2 minutos.
+
+  [ Atualizar o CORS no Render ]
+  7. Vai em: https://dashboard.render.com
+  8. Clica no servico "minha-api"
+  9. Clica em "Environment" no menu lateral
+  10. Edita a variavel FRONTEND_URL
+  11. Coloca a URL do Netlify: https://amazing-curie-123456.netlify.app
+  12. Clica em "Save Changes"
+  13. O Render reinicia o servidor automaticamente (30 segundos)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 11 — Testar o site online
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Abre a URL do Netlify no navegador
+  2. Os produtos devem aparecer carregados da API
+  3. Testa o carrinho: clica em "Comprar Agora" em varios produtos
+  4. Abre o carrinho, confere os itens
+  5. Clica em "Finalizar Compra"
+     Deve abrir a tela de pagamento do MercadoPago
+  6. Abre o admin: https://SEUSITE.netlify.app/admin.html
+  7. Adiciona um produto com uma foto sua
+  8. Volta ao site e confirma que apareceu
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ COMO ATUALIZAR O SITE NO FUTURO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Sempre que mudar qualquer arquivo no computador:
+
+  [ Atualizar o frontend ]
+    cd C:\Users\Morph\Desktop\storeclubshop-site
+    git add .
+    git commit -m "descricao do que mudou"
+    git push
+    → Netlify republica sozinho em 1-2 minutos
+
+  [ Atualizar o backend ]
+    cd C:\Users\Morph\minha-api
+    git add .
+    git commit -m "descricao do que mudou"
+    git push
+    → Render reimplanta sozinho em 2-3 minutos
+
+  Voce nao precisa entrar no Netlify ou no Render para isso.
+  O push no GitHub ja dispara o deploy automaticamente.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ AVISO IMPORTANTE — RENDER FREE TIER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  No plano gratuito do Render, o servidor "dorme" depois de
+  15 minutos sem receber visitas.
+
+  Quando o primeiro cliente acessar o site depois desse tempo,
+  vai demorar 30 a 60 segundos para o servidor acordar.
+  Depois disso, funciona normalmente.
+
+  Isso nao afeta os dados (MongoDB Atlas fica sempre ativo).
+  Afeta apenas a velocidade do primeiro carregamento.
+
+  Para evitar isso: assine o plano pago do Render ($7/mes)
+  ou use um servico de ping para manter o servidor ativo.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PROBLEMAS COMUNS NO DEPLOY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Site abre mas sem produtos / "API offline"
+    → URL no config.js esta errada. Refaz o passo 10.
+    → Ou o servidor do Render esta dormindo. Aguarda 60s e recarrega.
+
+  Erro "CORS" no console do navegador (F12)
+    → O FRONTEND_URL no Render esta errado. Refaz o passo 10, item 7.
+
+  Render: "MongooseServerSelectionError"
+    → A MONGODB_URI esta errada, ou o IP 0.0.0.0/0 nao foi
+      liberado no MongoDB Atlas. Revisa o passo 3, item 13.
+
+  Imagem nao aparece apos cadastrar produto
+    → As credenciais do Cloudinary no Render estao erradas.
+      Vai em Render > Environment e confere Cloud Name, API Key,
+      API Secret.
+
+  "Finalizar Compra" da erro de pagamento
+    → O MP_ACCESS_TOKEN no Render esta errado.
+      Pega um novo no MercadoPago e atualiza no Render.
+
+  Render: "Build failed"
+    → Clica em "Logs" no servico para ver o erro completo.
+      Normalmente e algum pacote que nao instalou.
+
+  git push pede senha e da erro
+    → O GitHub nao aceita mais senha normal. Precisa de Token.
+      Vai em: GitHub > Settings > Developer Settings >
+      Personal Access Tokens > Tokens (classic) > Generate new token
+      Marca a opcao "repo" e gera. Usa esse token como senha.
+
+  Netlify: site com HTML mas sem estilo / JS
+    → O Publish Directory pode estar errado. Deve ser "." (ponto).
+      Vai em Netlify > Site Settings > Build & Deploy e corrige.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ QUANDO QUISER RECEBER DINHEIRO DE VERDADE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Atualmente o site usa o token de TESTE do MercadoPago.
+  Isso significa que os pagamentos sao simulados, nao reais.
+
+  Para ativar pagamentos reais:
+  1. Va em: mercadopago.com.br/developers/panel
+  2. Clique em "Credenciais de producao" (nao de teste)
+  3. Copie o Access Token (comeca com APP_USR-)
+  4. Va no Render > Environment > MP_ACCESS_TOKEN
+  5. Substitua o token TEST- pelo APP_USR-
+  6. Salve. O Render reinicia automaticamente.
+  7. No script.js, troque "sandbox_init_point" por "init_point"
+     na funcao iniciarCheckout().
+
+  Atencao: com o token de producao, cobranças reais serao feitas.
+
+
+================================================================
+ RESUMO DOS LINKS
+
+  GitHub:      https://github.com
+  MongoDB:     https://cloud.mongodb.com
+  Cloudinary:  https://cloudinary.com/console
+  MercadoPago: https://www.mercadopago.com.br/developers/panel
+  Render:      https://dashboard.render.com
+  Netlify:     https://app.netlify.com
+
+  Seu site:    https://SEUSITE.netlify.app
+  Admin:       https://SEUSITE.netlify.app/admin.html
+  API:         https://minha-api-xxxx.onrender.com
+================================================================
