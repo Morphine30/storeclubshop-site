@@ -47,8 +47,8 @@ function renderCard(p) {
     ? (p.imagem.startsWith('http') ? p.imagem : `${API_URL}${p.imagem}`)
     : null;
   const imgHtml = imgSrc
-    ? `<img src="${imgSrc}" alt="${escHtml(p.nome)}">`
-    : p.emoji || '📦';
+    ? `<img src="${imgSrc.replace(/"/g, '%22')}" alt="${escHtml(p.nome)}">`
+    : escHtml(p.emoji || '📦');
   const stars = '★'.repeat(p.estrelas) + '☆'.repeat(Math.max(0, 5 - p.estrelas));
 
   return `
@@ -135,8 +135,8 @@ function renderCarrinho() {
       ? (p.imagem.startsWith('http') ? p.imagem : `${API_URL}${p.imagem}`)
       : null;
     const imgHtml = cartImgSrc
-      ? `<img src="${cartImgSrc}" alt="${escHtml(p.nome)}">`
-      : `<span class="cart-item-emoji">${p.emoji || '📦'}</span>`;
+      ? `<img src="${cartImgSrc.replace(/"/g, '%22')}" alt="${escHtml(p.nome)}">`
+      : `<span class="cart-item-emoji">${escHtml(p.emoji || '📦')}</span>`;
 
     return `
       <div class="cart-item">

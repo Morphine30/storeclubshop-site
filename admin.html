@@ -225,6 +225,7 @@
   </div>
   <div class="header-actions">
     <a href="index.html" class="btn-site">← Ver Site</a>
+    <button onclick="sair()" class="btn-site" style="cursor:pointer;border:none;background:transparent">🔒 Sair</button>
   </div>
 </header>
 
@@ -357,13 +358,120 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- ── LOGIN OVERLAY ── -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">Story<span>Club</span> Shop</div>
+    <h2>Painel Admin</h2>
+    <p>Digite a senha de administrador para continuar</p>
+    <input type="password" id="loginSenha" placeholder="Senha admin..." autocomplete="current-password">
+    <button onclick="fazerLogin()">Entrar</button>
+    <div class="login-erro" id="loginErro"></div>
+  </div>
+</div>
+
+<style>
+  .login-overlay {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 48px 40px;
+    width: 100%; max-width: 380px; text-align: center;
+  }
+  .login-logo {
+    font-family: 'Bebas Neue', cursive; font-size: 28px;
+    letter-spacing: 3px; margin-bottom: 8px;
+  }
+  .login-logo span { color: var(--verde); }
+  .login-box h2 {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+    font-size: 18px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); margin-bottom: 8px;
+  }
+  .login-box p { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .login-box input {
+    width: 100%; background: var(--dark3); border: 1.5px solid var(--border);
+    border-radius: 8px; color: var(--text);
+    font-family: 'Barlow', sans-serif; font-size: 15px;
+    padding: 12px 16px; outline: none; margin-bottom: 12px;
+    transition: border .2s;
+  }
+  .login-box input:focus { border-color: var(--verde); }
+  .login-box button {
+    width: 100%; background: var(--verde); color: #000; border: none;
+    border-radius: 8px; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 16px; text-transform: uppercase;
+    padding: 13px; cursor: pointer; transition: background .2s;
+  }
+  .login-box button:hover { background: var(--verde2); }
+  .login-erro {
+    margin-top: 12px; color: #ff4444;
+    font-size: 13px; min-height: 18px;
+  }
+</style>
+
 <script src="config.js"></script>
 <script>
-  const API = window.API_URL || 'http://localhost:3000';
-  let produtos = [];
-  let editandoId = null;
+  const API        = window.API_URL || 'http://localhost:3000';
+  const TOKEN_KEY  = 'storyclub_admin_token';
+  let produtos     = [];
+  let editandoId   = null;
   let imagemRemovida = false;
 
+  // ── Auth ──
+  function getToken() { return sessionStorage.getItem(TOKEN_KEY) || ''; }
+
+  function authHeaders() {
+    return { 'Authorization': `Bearer ${getToken()}` };
+  }
+
+  async function verificarAuth() {
+    const token = getToken();
+    if (!token) { mostrarLogin(); return; }
+    try {
+      const res = await fetch(`${API}/api/admin/verificar`, { headers: authHeaders() });
+      if (res.ok) { ocultarLogin(); carregarProdutos(); }
+      else { sessionStorage.removeItem(TOKEN_KEY); mostrarLogin(); }
+    } catch { mostrarLogin(); }
+  }
+
+  async function fazerLogin() {
+    const senha = document.getElementById('loginSenha').value.trim();
+    const erro  = document.getElementById('loginErro');
+    if (!senha) { erro.textContent = 'Digite a senha.'; return; }
+    erro.textContent = '';
+    try {
+      const res = await fetch(`${API}/api/admin/verificar`, {
+        headers: { 'Authorization': `Bearer ${senha}` }
+      });
+      if (res.ok) {
+        sessionStorage.setItem(TOKEN_KEY, senha);
+        ocultarLogin();
+        carregarProdutos();
+      } else {
+        erro.textContent = 'Senha incorreta.';
+        document.getElementById('loginSenha').value = '';
+      }
+    } catch {
+      erro.textContent = 'Servidor offline. Verifique a API.';
+    }
+  }
+
+  function mostrarLogin()  { document.getElementById('loginOverlay').style.display = 'flex'; }
+  function ocultarLogin()  { document.getElementById('loginOverlay').style.display = 'none'; }
+
+  function sair() {
+    sessionStorage.removeItem(TOKEN_KEY);
+    mostrarLogin();
+  }
+
+  document.getElementById('loginSenha')
+    .addEventListener('keydown', e => { if (e.key === 'Enter') fazerLogin(); });
+
+  // ── Produtos ──
   async function carregarProdutos() {
     try {
       const res = await fetch(`${API}/api/produtos`);
@@ -371,38 +479,44 @@
       renderLista();
     } catch {
       document.getElementById('productList').innerHTML =
-        '<div class="list-empty">⚠️ Backend offline. Inicie a API com <strong>npm run dev</strong> em <code>minha-api</code>.</div>';
+        '<div class="list-empty">⚠️ Backend offline. Inicie a API com <strong>npm run dev</strong>.</div>';
     }
   }
 
   function renderLista() {
     const list = document.getElementById('productList');
-    document.getElementById('panelCount').textContent = `${produtos.length} produto${produtos.length !== 1 ? 's' : ''}`;
+    document.getElementById('panelCount').textContent =
+      `${produtos.length} produto${produtos.length !== 1 ? 's' : ''}`;
 
     if (produtos.length === 0) {
       list.innerHTML = '<div class="list-empty">Nenhum produto cadastrado. Adicione o primeiro!</div>';
       return;
     }
 
-    list.innerHTML = produtos.map(p => `
-      <div class="item">
-        <div class="item-img">
-          ${p.imagem ? `<img src="${p.imagem.startsWith('http') ? p.imagem : API + p.imagem}" alt="${esc(p.nome)}">` : p.emoji || '📦'}
-        </div>
-        <div class="item-info">
-          <div class="item-nome">${esc(p.nome)}</div>
-          <div class="item-meta">
-            <span class="item-preco">R$${p.preco.toFixed(2).replace('.', ',')}</span>
-            <span class="item-cat">${esc(p.categoria)}</span>
-            <span class="item-secao">${p.secao === 'novidades' ? '✨ Novidades' : '🔥 Mais Vendidos'}</span>
+    list.innerHTML = produtos.map(p => {
+      const imgSrc = p.imagem
+        ? (p.imagem.startsWith('http') ? p.imagem : `${API}${p.imagem}`)
+        : null;
+      const imgHtml = imgSrc
+        ? `<img src="${imgSrc.replace(/"/g, '%22')}" alt="${esc(p.nome)}">`
+        : esc(p.emoji || '📦');
+      return `
+        <div class="item">
+          <div class="item-img">${imgHtml}</div>
+          <div class="item-info">
+            <div class="item-nome">${esc(p.nome)}</div>
+            <div class="item-meta">
+              <span class="item-preco">R$${p.preco.toFixed(2).replace('.', ',')}</span>
+              <span class="item-cat">${esc(p.categoria)}</span>
+              <span class="item-secao">${p.secao === 'novidades' ? '✨ Novidades' : '🔥 Mais Vendidos'}</span>
+            </div>
           </div>
-        </div>
-        <div class="item-actions">
-          <button class="btn-edit" onclick="editarProduto(${p.id})">✏️ Editar</button>
-          <button class="btn-del"  onclick="excluirProduto(${p.id})">🗑️</button>
-        </div>
-      </div>
-    `).join('');
+          <div class="item-actions">
+            <button class="btn-edit" onclick="editarProduto(${p.id})">✏️ Editar</button>
+            <button class="btn-del"  onclick="excluirProduto(${p.id})">🗑️</button>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   function editarProduto(id) {
@@ -412,25 +526,25 @@
     imagemRemovida = false;
 
     document.getElementById('formTitle').textContent = '✏️ Editar Produto';
-    document.getElementById('btnSave').textContent = '💾 Atualizar Produto';
+    document.getElementById('btnSave').textContent   = '💾 Atualizar Produto';
     document.getElementById('btnCancel').style.display = '';
 
-    document.getElementById('nome').value       = p.nome;
-    document.getElementById('descricao').value  = p.descricao;
-    document.getElementById('preco').value      = p.preco;
-    document.getElementById('precoAntigo').value= p.precoAntigo || '';
-    document.getElementById('parcelas').value   = p.parcelas || '';
-    document.getElementById('categoria').value  = p.categoria;
-    document.getElementById('secao').value      = p.secao || 'mais-vendidos';
-    document.getElementById('badge').value      = p.badge || '';
-    document.getElementById('badgeOff').value   = p.badgeOff || '';
-    document.getElementById('estrelas').value   = p.estrelas;
-    document.getElementById('avaliacoes').value = p.avaliacoes;
-    document.getElementById('emoji').value      = p.emoji || '📦';
+    document.getElementById('nome').value        = p.nome;
+    document.getElementById('descricao').value   = p.descricao;
+    document.getElementById('preco').value       = p.preco;
+    document.getElementById('precoAntigo').value = p.precoAntigo || '';
+    document.getElementById('parcelas').value    = p.parcelas || '';
+    document.getElementById('categoria').value   = p.categoria;
+    document.getElementById('secao').value       = p.secao || 'mais-vendidos';
+    document.getElementById('badge').value       = p.badge || '';
+    document.getElementById('badgeOff').value    = p.badgeOff || '';
+    document.getElementById('estrelas').value    = p.estrelas;
+    document.getElementById('avaliacoes').value  = p.avaliacoes;
+    document.getElementById('emoji').value       = p.emoji || '📦';
 
     if (p.imagem) {
       const src = p.imagem.startsWith('http') ? p.imagem : `${API}${p.imagem}`;
-      document.getElementById('imgPreview').src = src;
+      document.getElementById('imgPreview').src           = src;
       document.getElementById('imgPreviewWrap').style.display = 'block';
       document.getElementById('uploadArea').style.display     = 'none';
     } else {
@@ -444,7 +558,11 @@
   async function excluirProduto(id) {
     const p = produtos.find(x => x.id === id);
     if (!confirm(`Excluir "${p?.nome}"?`)) return;
-    const res = await fetch(`${API}/api/produtos/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API}/api/produtos/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); return; }
     if (res.ok) { await carregarProdutos(); toast('Produto excluído!'); }
     else toast('Erro ao excluir produto.', 'erro');
   }
@@ -454,21 +572,18 @@
     const form = e.target;
     const formData = new FormData(form);
 
-    // Se estava editando e não selecionou nova imagem, remove o campo para não sobrescrever
     if (editandoId && !document.getElementById('imgInput').files[0] && !imagemRemovida) {
       formData.delete('imagem');
     }
 
-    const url    = editandoId ? `${API}/api/produtos/${editandoId}` : `${API}/api/produtos`;
-    const method = editandoId ? 'PUT' : 'POST';
+    const url      = editandoId ? `${API}/api/produtos/${editandoId}` : `${API}/api/produtos`;
+    const method   = editandoId ? 'PUT' : 'POST';
     const foiEdicao = editandoId !== null;
 
     try {
-      const res = await fetch(url, { method, body: formData });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.erro || 'Erro desconhecido');
-      }
+      const res = await fetch(url, { method, body: formData, headers: authHeaders() });
+      if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); return; }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.erro || 'Erro desconhecido'); }
       cancelarEdicao();
       form.reset();
       await carregarProdutos();
@@ -481,9 +596,9 @@
   function cancelarEdicao() {
     editandoId = null;
     imagemRemovida = false;
-    document.getElementById('formTitle').textContent   = '➕ Novo Produto';
-    document.getElementById('btnSave').textContent     = '💾 Salvar Produto';
-    document.getElementById('btnCancel').style.display = 'none';
+    document.getElementById('formTitle').textContent    = '➕ Novo Produto';
+    document.getElementById('btnSave').textContent      = '💾 Salvar Produto';
+    document.getElementById('btnCancel').style.display  = 'none';
     document.getElementById('produtoForm').reset();
     document.getElementById('imgPreviewWrap').style.display = 'none';
     document.getElementById('uploadArea').style.display     = '';
@@ -523,7 +638,7 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
-  carregarProdutos();
+  verificarAuth();
 </script>
 </body>
 </html>
