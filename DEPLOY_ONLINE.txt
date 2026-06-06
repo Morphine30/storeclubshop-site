@@ -201,6 +201,10 @@ Siga na ordem. Nao pule etapas.
      │ MP_ACCESS_TOKEN      │ (token do MercadoPago — passo 5)     │
      │ FRONTEND_URL         │ (coloca qualquer coisa por agora,    │
      │                      │  voce atualiza depois do passo 9)    │
+     │ ADMIN_TOKEN          │ senha forte para o painel admin      │
+     │                      │ (minimo 20 caracteres, sem espacos)  │
+     │ JWT_SECRET           │ segredo para login de clientes       │
+     │                      │ (gere com: openssl rand -base64 32)  │
      └──────────────────────┴──────────────────────────────────────┘
 
   9. Clica em "Create Web Service"
