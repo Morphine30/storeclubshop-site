@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha Conta — Story Club Shop</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background:#0a0a0a; min-height:100vh; display:flex; flex-direction:column; }
+    .conta-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 16px; }
+    .conta-box { background:#111; border-radius:16px; width:100%; max-width:440px; padding:40px 32px; }
+    .conta-logo { text-align:center; font-size:2rem; font-weight:900; color:#7c3aed; margin-bottom:24px; }
+    .tabs { display:flex; gap:8px; margin-bottom:28px; }
+    .tab-btn { flex:1; padding:10px; border:none; border-radius:8px; font-weight:700; cursor:pointer; background:#1a1a1a; color:#888; transition:.2s; }
+    .tab-btn.active { background:#7c3aed; color:#fff; }
+    .form-group { margin-bottom:16px; }
+    .form-group label { display:block; color:#aaa; font-size:.85rem; margin-bottom:6px; }
+    .form-group input { width:100%; padding:12px; border-radius:8px; border:1px solid #333; background:#1a1a1a; color:#fff; font-size:1rem; box-sizing:border-box; }
+    .form-group input:focus { outline:none; border-color:#7c3aed; }
+    .btn-submit { width:100%; padding:14px; background:#7c3aed; color:#fff; border:none; border-radius:8px; font-weight:700; font-size:1rem; cursor:pointer; margin-top:8px; transition:.2s; }
+    .btn-submit:hover { background:#6d28d9; }
+    .msg-erro { color:#ff4d4d; font-size:.85rem; margin-top:8px; text-align:center; min-height:20px; }
+
+    /* Perfil logado */
+    .perfil { display:none; text-align:center; }
+    .perfil-avatar { font-size:56px; margin-bottom:12px; }
+    .perfil-nome { font-size:1.4rem; font-weight:700; color:#fff; margin-bottom:4px; }
+    .perfil-email { color:#aaa; margin-bottom:24px; font-size:.9rem; }
+    .btn-sair { background:#333; color:#fff; border:none; padding:12px 28px; border-radius:8px; font-weight:700; cursor:pointer; }
+    .btn-sair:hover { background:#444; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="index.html" class="logo">📚 Story Club Shop</a>
+      <nav>
+        <a href="index.html">Início</a>
+        <a href="index.html#produtos">Produtos</a>
+        <a href="conta.html" class="active">Conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="conta-wrap">
+    <div class="conta-box">
+      <div class="conta-logo">📚 Story Club</div>
+
+      <!-- Formulário login/cadastro -->
+      <div id="formArea">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="trocarTab('login')">Entrar</button>
+          <button class="tab-btn" onclick="trocarTab('cadastro')">Criar Conta</button>
+        </div>
+
+        <!-- Login -->
+        <div id="tabLogin">
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="loginEmail" placeholder="seu@email.com">
+          </div>
+          <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="loginSenha" placeholder="••••••">
+          </div>
+          <div class="msg-erro" id="loginErro"></div>
+          <button class="btn-submit" onclick="fazerLogin()">Entrar</button>
+        </div>
+
+        <!-- Cadastro -->
+        <div id="tabCadastro" style="display:none">
+          <div class="form-group">
+            <label>Nome</label>
+            <input type="text" id="cadNome" placeholder="Seu nome">
+          </div>
+          <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="cadEmail" placeholder="seu@email.com">
+          </div>
+          <div class="form-group">
+            <label>Senha (mínimo 6 caracteres)</label>
+            <input type="password" id="cadSenha" placeholder="••••••">
+          </div>
+          <div class="msg-erro" id="cadErro"></div>
+          <button class="btn-submit" onclick="fazerCadastro()">Criar Conta</button>
+        </div>
+      </div>
+
+      <!-- Perfil logado -->
+      <div class="perfil" id="perfilArea">
+        <div class="perfil-avatar">👤</div>
+        <div class="perfil-nome" id="perfilNome"></div>
+        <div class="perfil-email" id="perfilEmail"></div>
+        <button class="btn-sair" onclick="sair()">Sair da Conta</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const TOKEN_KEY = 'storyclub_token';
+    const USER_KEY  = 'storyclub_usuario';
+
+    // Verifica se já está logado
+    window.addEventListener('DOMContentLoaded', () => {
+      const usuario = JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+      if (usuario) mostrarPerfil(usuario);
+    });
+
+    function trocarTab(tab) {
+      document.getElementById('tabLogin').style.display   = tab === 'login'   ? '' : 'none';
+      document.getElementById('tabCadastro').style.display = tab === 'cadastro' ? '' : 'none';
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'cadastro' && i === 1));
+      });
+    }
+
+    async function fazerLogin() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const senha = document.getElementById('loginSenha').value;
+      const erroEl = document.getElementById('loginErro');
+      erroEl.textContent = '';
+
+      if (!email || !senha) { erroEl.textContent = 'Preencha e-mail e senha.'; return; }
+
+      try {
+        const res = await fetch(`${window.API_URL}/api/usuarios/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, senha })
+        });
+        const data = await res.json();
+        if (!res.ok) { erroEl.textContent = data.erro || 'Erro ao entrar.'; return; }
+
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(USER_KEY, JSON.stringify(data.usuario));
+        mostrarPerfil(data.usuario);
+      } catch {
+        erroEl.textContent = 'Erro de conexão. Tente novamente.';
+      }
+    }
+
+    async function fazerCadastro() {
+      const nome  = document.getElementById('cadNome').value.trim();
+      const email = document.getElementById('cadEmail').value.trim();
+      const senha = document.getElementById('cadSenha').value;
+      const erroEl = document.getElementById('cadErro');
+      erroEl.textContent = '';
+
+      if (!nome || !email || !senha) { erroEl.textContent = 'Preencha todos os campos.'; return; }
+      if (senha.length < 6) { erroEl.textContent = 'Senha deve ter no mínimo 6 caracteres.'; return; }
+
+      try {
+        const res = await fetch(`${window.API_URL}/api/usuarios/registrar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, email, senha })
+        });
+        const data = await res.json();
+        if (!res.ok) { erroEl.textContent = data.erro || 'Erro ao criar conta.'; return; }
+
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(USER_KEY, JSON.stringify(data.usuario));
+        mostrarPerfil(data.usuario);
+      } catch {
+        erroEl.textContent = 'Erro de conexão. Tente novamente.';
+      }
+    }
+
+    function mostrarPerfil(usuario) {
+      document.getElementById('formArea').style.display = 'none';
+      document.getElementById('perfilArea').style.display = 'block';
+      document.getElementById('perfilNome').textContent  = usuario.nome;
+      document.getElementById('perfilEmail').textContent = usuario.email;
+    }
+
+    function sair() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      document.getElementById('formArea').style.display = '';
+      document.getElementById('perfilArea').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
