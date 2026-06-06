@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produto — Story Club Shop</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .produto-wrap { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+
+    .produto-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+    @media (max-width: 720px) { .produto-layout { grid-template-columns: 1fr; gap: 24px; } }
+
+    /* Galeria */
+    .galeria-principal { position: relative; background: #111; border-radius: 16px; overflow: hidden; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+    .galeria-principal img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+    .galeria-principal .emoji-grande { font-size: 120px; }
+    .galeria-thumbs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .galeria-thumbs .thumb { width: 72px; height: 72px; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; background: #111; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .galeria-thumbs .thumb.ativo { border-color: #7c3aed; }
+    .galeria-thumbs .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Info */
+    .produto-info-wrap { display: flex; flex-direction: column; gap: 16px; }
+    .produto-categoria { color: #7c3aed; font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .produto-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; line-height: 1.2; }
+    .produto-stars { color: #f59e0b; font-size: 1.1rem; }
+    .produto-stars span { color: #888; font-size: .85rem; margin-left: 6px; }
+    .produto-preco-wrap { display: flex; align-items: baseline; gap: 12px; }
+    .produto-preco { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; color: #00c44f; }
+    .produto-preco-antigo { font-size: 1.1rem; color: #666; text-decoration: line-through; }
+    .produto-desc { color: #ccc; line-height: 1.7; font-size: .97rem; white-space: pre-line; }
+    .btn-comprar { display: block; text-align: center; background: #7c3aed; color: #fff; padding: 16px; border-radius: 10px; font-weight: 900; font-size: 1.1rem; text-decoration: none; transition: .2s; margin-top: 8px; }
+    .btn-comprar:hover { background: #6d28d9; }
+    .btn-comprar.sem-link { background: #333; cursor: default; }
+
+    /* Voltar */
+    .btn-voltar { display: inline-flex; align-items: center; gap: 6px; color: #888; text-decoration: none; font-size: .9rem; margin-bottom: 24px; }
+    .btn-voltar:hover { color: #fff; }
+
+    /* Sugestões */
+    .sugestoes { margin-top: 64px; }
+    .sugestoes h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #fff; margin-bottom: 24px; }
+    .sugestoes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+    .sug-card { background: #111; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform .2s; }
+    .sug-card:hover { transform: translateY(-4px); }
+    .sug-card .sug-img { aspect-ratio: 1; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 48px; overflow: hidden; }
+    .sug-card .sug-img img { width: 100%; height: 100%; object-fit: cover; }
+    .sug-card .sug-info { padding: 12px; }
+    .sug-card .sug-nome { color: #fff; font-weight: 700; font-size: .9rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sug-card .sug-preco { color: #00c44f; font-weight: 700; }
+
+    /* Loading */
+    .loading { text-align: center; color: #888; padding: 80px 0; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <span>🔥 Frete Grátis acima de R$99</span>
+  <span>⚡ Entrega para todo o Brasil</span>
+  <span>✅ Compra 100% Segura</span>
+</div>
+<header>
+  <div class="header-inner">
+    <a href="index.html" class="logo">
+      <img src="logo.png" alt="Story Club Shop" style="height:56px;width:56px;object-fit:cover;border-radius:50%;">
+    </a>
+    <div class="search-bar">
+      <input type="text" placeholder="Buscar produtos virais...">
+      <button class="search-btn">🔍</button>
+    </div>
+    <div class="header-actions">
+      <a href="conta.html"><span class="icon">👤</span><span>Conta</span></a>
+    </div>
+  </div>
+</header>
+
+<div class="produto-wrap">
+  <a href="index.html" class="btn-voltar">← Voltar para a loja</a>
+  <div id="conteudo"><div class="loading">Carregando produto...</div></div>
+</div>
+
+<script src="config.js"></script>
+<script>
+const API_URL = window.API_URL || 'http://localhost:3000';
+const params  = new URLSearchParams(location.search);
+const id      = parseInt(params.get('id'));
+
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function imgUrl(url) { return url ? url.replace(/"/g,'%22') : ''; }
+
+async function carregar() {
+  if (!id) { document.getElementById('conteudo').innerHTML = '<div class="loading">Produto não encontrado.</div>'; return; }
+
+  const [resProd, resTodos] = await Promise.all([
+    fetch(`${API_URL}/api/produtos/${id}`),
+    fetch(`${API_URL}/api/produtos`)
+  ]);
+
+  if (!resProd.ok) { document.getElementById('conteudo').innerHTML = '<div class="loading">Produto não encontrado.</div>'; return; }
+
+  const p = await resProd.json();
+  const todos = await resTodos.json();
+  document.title = `${p.nome} — Story Club Shop`;
+
+  // Monta lista de todas as fotos
+  const todasFotos = [];
+  if (p.imagem) todasFotos.push(p.imagem);
+  if (p.imagens?.length) todasFotos.push(...p.imagens);
+
+  const fotoAtual = todasFotos[0] || null;
+  const stars = '★'.repeat(p.estrelas) + '☆'.repeat(Math.max(0, 5 - p.estrelas));
+
+  const thumbsHtml = todasFotos.length > 1 ? `
+    <div class="galeria-thumbs">
+      ${todasFotos.map((foto, i) => `
+        <div class="thumb ${i === 0 ? 'ativo' : ''}" onclick="trocarFoto('${imgUrl(foto)}', this)">
+          <img src="${imgUrl(foto)}" alt="foto ${i+1}">
+        </div>`).join('')}
+    </div>` : '';
+
+  const imgPrincipal = fotoAtual
+    ? `<img id="imgPrincipal" src="${imgUrl(fotoAtual)}" alt="${escHtml(p.nome)}">`
+    : `<div class="emoji-grande">${escHtml(p.emoji || '📦')}</div>`;
+
+  const btnComprar = p.linkPagamento
+    ? `<a class="btn-comprar" href="${imgUrl(p.linkPagamento)}" target="_blank" rel="noopener">🛒 Comprar Agora</a>`
+    : `<a class="btn-comprar sem-link">🛒 Link de compra não disponível</a>`;
+
+  // Sugestões: mesma categoria, excluindo o atual, máximo 4
+  const sugestoes = todos.filter(s => s.id !== p.id && s.categoria === p.categoria).slice(0, 4);
+  const outrasSugestoes = sugestoes.length < 4
+    ? todos.filter(s => s.id !== p.id && s.categoria !== p.categoria).slice(0, 4 - sugestoes.length)
+    : [];
+  const todasSugestoes = [...sugestoes, ...outrasSugestoes];
+
+  const sugestoesHtml = todasSugestoes.length ? `
+    <div class="sugestoes">
+      <h2>Você também pode gostar</h2>
+      <div class="sugestoes-grid">
+        ${todasSugestoes.map(s => {
+          const sImg = s.imagem ? `<img src="${imgUrl(s.imagem)}" alt="${escHtml(s.nome)}">` : escHtml(s.emoji || '📦');
+          return `
+            <div class="sug-card" onclick="window.location.href='produto.html?id=${s.id}'">
+              <div class="sug-img">${sImg}</div>
+              <div class="sug-info">
+                <div class="sug-nome">${escHtml(s.nome)}</div>
+                <div class="sug-preco">R$${s.preco.toFixed(2).replace('.',',')}</div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>` : '';
+
+  document.getElementById('conteudo').innerHTML = `
+    <div class="produto-layout">
+      <div>
+        <div class="galeria-principal">${imgPrincipal}</div>
+        ${thumbsHtml}
+      </div>
+      <div class="produto-info-wrap">
+        <div class="produto-categoria">${escHtml(p.categoria)}</div>
+        <div class="produto-titulo">${escHtml(p.nome)}</div>
+        <div class="produto-stars">${stars}<span>(${p.avaliacoes} avaliações)</span></div>
+        <div class="produto-preco-wrap">
+          <div class="produto-preco">R$${p.preco.toFixed(2).replace('.',',')}</div>
+          ${p.precoAntigo ? `<div class="produto-preco-antigo">R$${p.precoAntigo.toFixed(2).replace('.',',')}</div>` : ''}
+        </div>
+        <div class="produto-desc">${escHtml(p.descricao)}</div>
+        ${btnComprar}
+      </div>
+    </div>
+    ${sugestoesHtml}`;
+}
+
+function trocarFoto(url, thumb) {
+  document.getElementById('imgPrincipal').src = url;
+  document.querySelectorAll('.thumb').forEach(t => t.classList.remove('ativo'));
+  thumb.classList.add('ativo');
+}
+
+carregar();
+</script>
+</body>
+</html>

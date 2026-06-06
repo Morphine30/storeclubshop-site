@@ -48,7 +48,7 @@ function renderCard(p) {
     : `href="#" onclick="return false"`;
 
   return `
-    <div class="product-card">
+    <div class="product-card" onclick="window.location.href='produto.html?id=${p.id}'" style="cursor:pointer;">
       <div class="product-img">
         ${imgHtml}
         ${p.badge    ? `<span class="badge-hot">${escHtml(p.badge)}</span>`    : ''}
@@ -62,7 +62,7 @@ function renderCard(p) {
           <span class="price-main">R$${p.preco.toFixed(2).replace('.', ',')}</span>
           ${p.precoAntigo ? `<span class="price-old">R$${p.precoAntigo.toFixed(2).replace('.', ',')}</span>` : ''}
         </div>
-        <a class="btn-buy" ${linkAttr}>🛒 Comprar Agora</a>
+        <a class="btn-buy" ${linkAttr} onclick="event.stopPropagation()">🛒 Comprar Agora</a>
       </div>
     </div>`;
 }

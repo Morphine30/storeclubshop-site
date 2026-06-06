@@ -332,9 +332,9 @@
         <input name="emoji" id="emoji" placeholder="📦" maxlength="4">
       </div>
 
-      <!-- Image upload -->
+      <!-- Imagem principal -->
       <div class="form-group">
-        <label>Imagem do Produto</label>
+        <label>Imagem Principal do Produto</label>
         <div id="imgPreviewWrap">
           <img id="imgPreview" src="" alt="Preview">
           <button type="button" class="btn-remove-img" onclick="removerImagem()">✕ Remover</button>
@@ -344,6 +344,26 @@
           <div class="upload-icon">🖼️</div>
           <div class="upload-label">Clique ou arraste a imagem aqui</div>
           <div class="upload-hint">JPG, PNG, WEBP — máx. 5 MB</div>
+        </div>
+      </div>
+
+      <!-- Fotos extras -->
+      <div class="form-group">
+        <label>Fotos Extras (até 4 fotos)</label>
+        <div id="extrasExistentesWrap" style="display:none;margin-bottom:8px;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Fotos atuais (enviar novas substituirá todas):</div>
+          <div id="extrasExistentes" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="upload-area" style="position:relative;">
+          <input type="file" name="imagens" id="imgExtrasInput" accept="image/*" multiple onchange="previewExtras(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+          <div class="upload-icon">📷</div>
+          <div class="upload-label">Selecionar fotos extras</div>
+          <div class="upload-hint">Até 4 fotos • JPG, PNG, WEBP — máx. 5 MB cada</div>
+        </div>
+        <div id="extrasPreviewWrap" style="display:none;margin-top:8px;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Novas fotos selecionadas:</div>
+          <div id="extrasPreview" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+          <button type="button" onclick="limparExtras()" style="margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">✕ Limpar seleção</button>
         </div>
       </div>
 
@@ -553,6 +573,18 @@
       document.getElementById('uploadArea').style.display     = '';
     }
 
+    const extWrap = document.getElementById('extrasExistentesWrap');
+    const extDiv  = document.getElementById('extrasExistentes');
+    limparExtras();
+    if (p.imagens?.length) {
+      extDiv.innerHTML = p.imagens.map(url =>
+        `<img src="${url.replace(/"/g,'%22')}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">`
+      ).join('');
+      extWrap.style.display = 'block';
+    } else {
+      extWrap.style.display = 'none';
+    }
+
     document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth' });
   }
 
@@ -575,6 +607,9 @@
 
     if (editandoId && !document.getElementById('imgInput').files[0] && !imagemRemovida) {
       formData.delete('imagem');
+    }
+    if (!document.getElementById('imgExtrasInput').files.length) {
+      formData.delete('imagens');
     }
 
     const url      = editandoId ? `${API}/api/produtos/${editandoId}` : `${API}/api/produtos`;
@@ -603,6 +638,8 @@
     document.getElementById('produtoForm').reset();
     document.getElementById('imgPreviewWrap').style.display = 'none';
     document.getElementById('uploadArea').style.display     = '';
+    document.getElementById('extrasExistentesWrap').style.display = 'none';
+    limparExtras();
   }
 
   function previewImagem(input) {
@@ -621,6 +658,31 @@
     document.getElementById('imgPreviewWrap').style.display = 'none';
     document.getElementById('uploadArea').style.display     = '';
     imagemRemovida = true;
+  }
+
+  function previewExtras(input) {
+    if (!input.files || !input.files.length) return;
+    const files = Array.from(input.files).slice(0, 4);
+    const wrap  = document.getElementById('extrasPreviewWrap');
+    const prev  = document.getElementById('extrasPreview');
+    prev.innerHTML = '';
+    files.forEach(f => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);';
+        prev.appendChild(img);
+      };
+      reader.readAsDataURL(f);
+    });
+    wrap.style.display = 'block';
+  }
+
+  function limparExtras() {
+    document.getElementById('imgExtrasInput').value = '';
+    document.getElementById('extrasPreviewWrap').style.display = 'none';
+    document.getElementById('extrasPreview').innerHTML = '';
   }
 
   function toast(msg, tipo = 'ok') {
