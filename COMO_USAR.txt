@@ -1,13 +1,34 @@
 ================================================================
-   STORY CLUB SHOP — COMO RODAR AGORA (MODO LOCAL)
+   STORY CLUB SHOP — GUIA COMPLETO DE USO
 ================================================================
-Siga na ordem. Nao pule nenhum passo.
+Atualizado em: Junho 2026
 ================================================================
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ VISAO GERAL DO SISTEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  O site tem 3 areas:
+
+  [1] LOJA (index.html)
+      Pagina publica que os clientes acessam.
+      Mostra os produtos, carrinho e finaliza compra.
+
+  [2] PAINEL ADMIN (admin.html)
+      So voce tem acesso. Requer senha (ADMIN_TOKEN).
+      Cadastra, edita e remove produtos com imagens.
+
+  [3] CONTA DO CLIENTE (conta.html)
+      Clientes criam conta e fazem login.
+      Separado do admin — nao da acesso ao painel.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PARTE 1 — RODAR LOCALMENTE (no seu computador)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
  PASSO 1 — Instalar o Node.js (so faz uma vez)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   1. Vai em: https://nodejs.org
   2. Clica no botao verde "LTS"
@@ -15,194 +36,193 @@ Siga na ordem. Nao pule nenhum passo.
   4. Reinicia o computador
   5. Para confirmar, abre o terminal e digita:
        node -v
-     Deve aparecer um numero tipo: v20.0.0
+     Deve aparecer: v20.x.x
 
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  PASSO 2 — Instalar o VS Code (so faz uma vez)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   1. Vai em: https://code.visualstudio.com
-  2. Clica em "Download for Windows"
-  3. Instala normalmente
+  2. Clica em "Download for Windows" e instala
 
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  PASSO 3 — Instalar Live Server no VS Code (so faz uma vez)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   1. Abre o VS Code
-  2. Clica no icone de 4 quadradinhos (Extensions) na barra esquerda
+  2. Clica no icone de 4 quadradinhos (Extensions)
   3. Pesquisa: Live Server
   4. Instala o primeiro resultado (de Ritwick Dey)
 
+ PASSO 4 — Configurar o arquivo .env
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PASSO 4 — Criar as contas gratuitas (so faz uma vez)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  O arquivo .env fica em: C:\Users\Morph\minha-api\.env
+  Ele ja esta preenchido com suas credenciais reais.
+  Se precisar abrir: clique duplo ou abra com o Bloco de Notas.
 
-  Precisa de 3 contas. Anota os dados de cada uma.
+  Campos do .env:
 
-  [ A ] MongoDB Atlas — banco de dados
-        Site: https://www.mongodb.com/atlas
-        - Cria a conta, escolhe o plano FREE (M0)
-        - Cria um usuario com usuario e senha proprios
-        - Em "Network Access" adiciona o IP: 0.0.0.0/0
-        - Em "Connect" > "Drivers" copia a string de conexao:
-          mongodb+srv://usuario:senha@cluster0.xxxxx.mongodb.net/storeclubshop
+    MONGODB_URI        → string de conexao do MongoDB Atlas
+    CLOUDINARY_*       → credenciais do Cloudinary (imagens)
+    MP_ACCESS_TOKEN    → token do MercadoPago (pagamentos)
+    FRONTEND_URL       → URL do site (localhost ou Netlify)
+    ADMIN_TOKEN        → senha do painel admin (nao compartilhe!)
+    JWT_SECRET         → segredo para login de clientes (nao compartilhe!)
+    PORT               → porta do servidor (3000 local)
 
-  [ B ] Cloudinary — guardar as imagens dos produtos
-        Site: https://cloudinary.com
-        - Cria a conta gratis
-        - No Dashboard anota os 3 valores:
-          Cloud Name / API Key / API Secret
+ PASSO 5 — Ligar o servidor
 
-  [ C ] MercadoPago — receber pagamentos
-        Site: https://www.mercadopago.com.br
-        - Cria a conta
-        - Vai em: mercadopago.com.br/developers/panel
-        - Cria uma aplicacao
-        - Em "Credenciais de teste" copia o Access Token (comeca com TEST-)
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PASSO 5 — Criar o arquivo .env com suas credenciais
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  1. Vai na pasta: C:\Users\Morph\minha-api
-  2. Voce vai ver o arquivo: .env.example
-  3. Faz uma COPIA desse arquivo na mesma pasta
-  4. Renomeia a copia para: .env
-     (so .env, sem o ".example" no nome)
-  5. Abre o arquivo .env com o Bloco de Notas
-  6. Substitui cada valor pelo dado real que voce anotou:
-
-     MONGODB_URI=mongodb+srv://seuusuario:suasenha@cluster0.xxxxx.mongodb.net/storeclubshop
-     CLOUDINARY_CLOUD_NAME=seu_cloud_name_aqui
-     CLOUDINARY_API_KEY=000000000000000
-     CLOUDINARY_API_SECRET=seu_api_secret_aqui
-     MP_ACCESS_TOKEN=TEST-seu_token_aqui
-     FRONTEND_URL=http://127.0.0.1:5500
-     PORT=3000
-
-  7. Salva e fecha
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PASSO 6 — Ligar o servidor
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  1. Abre o terminal
-     (aperta Windows + R, digita: cmd, aperta Enter)
-
-  2. Digita e aperta Enter:
-       cd C:\Users\Morph\minha-api
-
-  3. Digita e aperta Enter:
-       npm run dev
-
-  4. Aguarda aparecer essas duas mensagens:
+  1. Abre o terminal (Windows + R → digita cmd → Enter)
+  2. Digita: cd C:\Users\Morph\minha-api
+  3. Digita: npm run dev
+  4. Aguarda aparecer:
        MongoDB conectado
        Servidor rodando em http://localhost:3000
 
-     Se aparecer tambem:
-       12 produtos inseridos no banco.
-     E porque e a primeira vez. Normal, os produtos foram cadastrados.
-
   IMPORTANTE: Deixa essa janela aberta enquanto usa o site!
-  Para parar o servidor: aperta Ctrl + C na janela do terminal.
+  Para parar: aperta Ctrl + C.
 
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PASSO 7 — Abrir o site
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PASSO 6 — Abrir o site
 
   1. Abre o VS Code
-  2. Vai em: File > Open Folder
-  3. Seleciona a pasta: C:\Users\Morph\Desktop\storyclubshop-site
-  4. Clica no arquivo index.html na lista da esquerda
-  5. No canto inferior direito clica em: Go Live
-  6. O navegador abre com o site funcionando!
-     Endereco: http://127.0.0.1:5500
+  2. File > Open Folder > seleciona: storyclubshop-site
+  3. Clica em index.html
+  4. Clica em "Go Live" (canto inferior direito)
+  5. Navegador abre em: http://127.0.0.1:5500
 
-  Para o painel admin, so mudar o endereco para:
-  http://127.0.0.1:5500/admin.html
+ ROTINA DO DIA A DIA (resumo)
 
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- ROTINA DO DIA A DIA
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Toda vez que for usar, faz so isso:
-
-  [1] Abre o terminal
-  [2] cd C:\Users\Morph\minha-api
-  [3] npm run dev
-  [4] Deixa o terminal aberto
-  [5] No VS Code, abre storeclubshop-site e clica em Go Live
-  [6] Pronto!
+  [1] Terminal → cd C:\Users\Morph\minha-api → npm run dev
+  [2] VS Code → abre storyclubshop-site → Go Live
+  [3] Pronto!
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- COMO ADICIONAR UM PRODUTO COM SUA PROPRIA IMAGEM
+ PARTE 2 — PAINEL ADMIN (cadastro e edicao de produtos)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  1. Servidor rodando (passo 6) + site aberto (passo 7)
-  2. No navegador vai para: http://127.0.0.1:5500/admin.html
-  3. Preenche o formulario do lado direito:
-     - Nome, descricao, preco (obrigatorios)
-     - Preco antigo, parcelas (opcional)
-     - Categoria e Secao (onde vai aparecer no site)
-     - Badge: etiqueta colorida ex: 🔥 Viral
-     - Desconto: ex: -30%
-     - Emoji: aparece se nao tiver foto, ex: 📦
-     - Imagem: clica na area pontilhada e escolhe uma foto
-       do seu computador (ate 5MB)
-  4. Clica em "Salvar Produto"
-  5. O produto aparece na lista e no site instantaneamente!
+ COMO ACESSAR O PAINEL ADMIN
+
+  Local:    http://127.0.0.1:5500/admin.html
+  Online:   https://storyclub.netlify.app/admin.html
+
+  Ao abrir, aparece a tela de login.
+  A senha e o valor do ADMIN_TOKEN salvo no arquivo:
+    C:\Users\Morph\Desktop\SENHA_ADMIN_TOKEN.txt
+
+  Apos entrar, o painel fica disponivel ate voce clicar em "Sair".
+  Caso fique muito tempo sem usar, precisara fazer login novamente.
+
+ COMO CADASTRAR UM PRODUTO
+
+  1. Acesse o painel admin e faca login
+  2. Clique em "Novo Produto" (ou role ate o formulario)
+  3. Preencha os campos:
+
+     Nome*         → nome do produto (obrigatorio)
+     Descricao*    → descricao curta (obrigatorio)
+     Preco*        → valor em reais, ex: 49.90 (obrigatorio)
+     Preco Antigo  → valor riscado, ex: 79.90 (opcional)
+     Parcelas      → texto livre, ex: ou 3x de R$16,63 (opcional)
+     Estrelas      → avaliacao de 1 a 5
+     Avaliacoes    → numero de avaliadores, ex: 1284
+     Badge         → etiqueta colorida, ex: Viral (opcional)
+     Desconto      → ex: -30% (opcional)
+     Categoria     → ex: Organizacao, Cozinha, Saude...
+     Emoji         → aparece se nao tiver foto, ex: 📦
+     Secao         → onde aparece: "mais-vendidos" ou "novidades"
+     Imagem        → clique na area pontilhada e escolha um arquivo
+                     (JPG, PNG ou WebP — ate 5MB)
+
+  4. Clique em "Salvar Produto"
+  5. O produto aparece na lista e no site instantaneamente
+
+ COMO EDITAR UM PRODUTO
+
+  1. Na lista de produtos, clique em "Editar" no produto desejado
+  2. O formulario e preenchido automaticamente com os dados atuais
+  3. Altere o que quiser
+  4. Para trocar a imagem: clique na area de imagem e escolha outra foto
+     (a imagem antiga e deletada automaticamente do Cloudinary)
+  5. Clique em "Salvar"
+
+ COMO REMOVER UM PRODUTO
+
+  1. Na lista de produtos, clique em "Excluir"
+  2. Confirme a exclusao
+  3. O produto e removido do site e do banco de dados
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- COMO O CLIENTE COMPRA
+ PARTE 3 — CONTA DE CLIENTE (login e cadastro)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  A pagina de conta dos clientes fica em:
+
+    Local:   http://127.0.0.1:5500/conta.html
+    Online:  https://storyclub.netlify.app/conta.html
+
+  O cliente pode:
+    - Criar uma conta com nome, e-mail e senha
+    - Fazer login
+    - Ver seu nome e e-mail no perfil
+    - Clicar em "Sair" para deslogar
+
+  IMPORTANTE:
+    A conta de cliente NAO da acesso ao painel admin.
+    Sao sistemas separados com senhas diferentes.
+    A senha minima para clientes e 6 caracteres.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ PARTE 4 — FLUXO DE COMPRA DO CLIENTE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   1. Cliente entra no site (index.html)
   2. Clica em "Comprar Agora" nos produtos que quer
   3. O numero no icone do carrinho vai aumentando
   4. Clica no botao do Carrinho (canto direito do header)
-  5. Abre um painel com todos os itens
+  5. Abre um painel lateral com todos os itens
   6. Pode aumentar/diminuir quantidade ou remover itens
   7. Clica em "Finalizar Compra"
   8. E redirecionado para o MercadoPago
   9. Paga com PIX, Cartao ou Boleto
+  10. Apos o pagamento:
+      → Aprovado:  vai para /sucesso.html
+      → Cancelado: vai para /erro.html
+      → Pendente:  vai para /pendente.html
+      Todas as paginas tem botao de "Voltar a Loja"
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PROBLEMAS COMUNS
+ PARTE 5 — PROBLEMAS COMUNS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  O servidor nao liga / da erro de MongoDB
-    → A MONGODB_URI no .env esta errada. Revisa o passo 5.
-    → O IP 0.0.0.0/0 nao foi liberado no Atlas. Revisa o passo 4A.
+  Servidor nao liga / da erro de MongoDB
+    → A MONGODB_URI no .env esta errada
+    → O IP 0.0.0.0/0 nao foi liberado no MongoDB Atlas
 
   Produtos nao aparecem no site
-    → O servidor nao esta rodando. Faz o passo 6.
-    → Confirma que apareceu "MongoDB conectado" no terminal.
+    → O servidor nao esta rodando (faz npm run dev)
+    → Confirma que apareceu "MongoDB conectado" no terminal
 
   Imagem nao aparece apos cadastrar produto
-    → As credenciais do Cloudinary no .env estao erradas.
-    → Revisa CLOUDINARY_CLOUD_NAME, API_KEY e API_SECRET.
+    → Credenciais do Cloudinary no .env estao erradas
+    → Revisa CLOUDINARY_CLOUD_NAME, API_KEY e API_SECRET
 
   Finalizar Compra da erro
-    → O MP_ACCESS_TOKEN no .env esta errado. Pega um novo no passo 4C.
+    → O MP_ACCESS_TOKEN no .env esta errado
+
+  Painel admin nao aceita a senha
+    → Confere o ADMIN_TOKEN no arquivo .env
+    → A senha correta esta em: SENHA_ADMIN_TOKEN.txt na area de trabalho
+
+  Login de cliente da erro de "Token"
+    → O JWT_SECRET nao foi adicionado no Render
+    → Adiciona a variavel JWT_SECRET no painel do Render.com
 
   "Go Live" nao aparece no VS Code
-    → A extensao Live Server nao foi instalada. Faz o passo 3.
+    → A extensao Live Server nao foi instalada (instala no passo 3)
 
   npm nao reconhecido
-    → Node.js nao instalado ou computador nao reiniciou. Faz o passo 1.
+    → Node.js nao instalado ou computador nao reiniciou
 
 ================================================================
- PARA PUBLICAR ONLINE (Netlify + Render):
- Leia o arquivo: DEPLOY_ONLINE.txt
+ PARA PUBLICAR ONLINE: leia o arquivo DEPLOY_ONLINE.txt
 ================================================================
