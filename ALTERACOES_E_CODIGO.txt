@@ -1,7 +1,7 @@
 ================================================================
    STORY CLUB SHOP — TUDO QUE FOI FEITO NO CODIGO
 ================================================================
-Atualizado em: Junho 2026
+Ultima atualizacao: Junho 2026
 ================================================================
 
 
@@ -9,7 +9,9 @@ Atualizado em: Junho 2026
  VISAO GERAL DA ARQUITETURA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  FRONTEND (storyclubshop-site/)
+  O projeto tem duas partes separadas:
+
+  FRONTEND (storeclubshop-site_backup/)
     Arquivos HTML, CSS e JS que o cliente ve no navegador.
     Hospedado no Netlify: https://storyclub.netlify.app
     Fala com o backend via fetch (chamadas HTTP).
@@ -17,18 +19,346 @@ Atualizado em: Junho 2026
   BACKEND (minha-api/)
     Servidor Node.js com Express.
     Hospedado no Render: https://minha-api-a6zk.onrender.com
-    Conecta ao MongoDB Atlas (banco de dados).
+    Conecta ao MongoDB (banco de dados na nuvem).
     Conecta ao Cloudinary (armazenamento de imagens).
-    Conecta ao MercadoPago (pagamentos).
 
-  FLUXO DE UMA COMPRA:
-    Navegador → script.js → API Express → MongoDB/Cloudinary/MercadoPago
+  COMO FUNCIONA O FLUXO COMPLETO:
+    Cliente → Netlify (HTML) → API Render → MongoDB/Cloudinary
+    Admin   → admin.html → API Render (com autenticacao) → MongoDB/Cloudinary
 
-  FLUXO DO ADMIN:
-    admin.html → login com ADMIN_TOKEN → rotas protegidas da API
 
-  FLUXO DO CLIENTE:
-    conta.html → cadastro/login → JWT salvo no localStorage
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BACKEND — ARQUIVOS E O QUE FAZEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/models/Produto.js                             │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Define a "forma" de um produto no banco de dados MongoDB.
+
+  Campos atuais:
+    id              → numero unico (1, 2, 3...)
+    nome            → nome do produto (obrigatorio)
+    descricao       → descricao do produto (obrigatorio)
+    preco           → preco atual em reais (obrigatorio)
+    precoAntigo     → preco riscado (opcional)
+    linkPagamento   → URL do link de compra por produto (opcional)
+    estrelas        → avaliacao de 1 a 5
+    avaliacoes      → numero de avaliacoes
+    badge           → etiqueta colorida, ex: "🔥 Viral"
+    badgeOff        → desconto, ex: "-35%"
+    categoria       → Eletrônicos, Beleza, etc
+    emoji           → emoji placeholder quando nao tem foto
+    imagem          → URL da foto principal no Cloudinary
+    imagemPublicId  → ID interno (para deletar do Cloudinary)
+    imagens[]       → array com ate 4 fotos extras (URLs)
+    imagensPublicIds[] → IDs internos das fotos extras
+    secao           → "mais-vendidos" ou "novidades"
+
+  Nota: imagemPublicId e imagensPublicIds nao aparecem nas
+  respostas da API (removidos pelo toJSON transform).
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/models/Usuario.js                             │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Define a conta de um cliente da loja.
+
+  Campos:
+    nome   → nome do cliente
+    email  → e-mail (unico, em minusculo)
+    senha  → senha criptografada com bcrypt (nao aparece na API)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/controllers/produtosController.js             │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    O "cerebro" das operacoes de produtos.
+
+  Funcoes:
+
+    listar()
+      Busca todos os produtos no MongoDB e retorna em JSON.
+
+    obter()
+      Busca um produto especifico pelo id numerico.
+
+    criar()
+      Recebe os dados do formulario (incluindo linkPagamento).
+      Faz upload da imagem principal para o Cloudinary (se tiver).
+      Faz upload de ate 4 fotos extras (se tiver).
+      Salva tudo no MongoDB.
+
+    atualizar()
+      Usa findOneAndUpdate + $set para garantir que todos os
+      campos (incluindo linkPagamento) sejam salvos corretamente.
+      Se chegou nova imagem principal: deleta a antiga do Cloudinary
+      e faz upload da nova.
+      Se chegaram novas fotos extras: deleta todas as antigas
+      do Cloudinary e faz upload das novas.
+
+    deletar()
+      Deleta a imagem principal do Cloudinary.
+      Deleta todas as fotos extras do Cloudinary.
+      Remove o produto do MongoDB.
+
+  Nota tecnica importante:
+    O metodo atualizar usa findOneAndUpdate com $set em vez de
+    produto.save() para evitar um problema do Mongoose onde campos
+    nulos nao eram detectados como modificados.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/controllers/usuariosController.js             │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Gerencia as contas dos clientes.
+
+  Funcoes:
+    registrar() → cria conta com senha criptografada (bcrypt 12 rounds)
+                  retorna token JWT valido por 7 dias
+    login()     → verifica senha com bcrypt, retorna JWT
+    perfil()    → retorna dados do cliente (requer JWT valido)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/routes/produtos.js                            │
+└─────────────────────────────────────────────────────────────┘
+  Endpoints da API de produtos:
+
+    GET    /api/produtos         → lista todos (publico)
+    GET    /api/produtos/:id     → retorna um produto (publico)
+    POST   /api/produtos         → cria produto (requer ADMIN_TOKEN)
+    PUT    /api/produtos/:id     → atualiza produto (requer ADMIN_TOKEN)
+    DELETE /api/produtos/:id     → deleta produto (requer ADMIN_TOKEN)
+
+  Upload de imagens:
+    Usa upload.fields() do multer para aceitar:
+      "imagem"   → 1 foto principal
+      "imagens"  → ate 4 fotos extras
+    Armazenamento em memoria (memoryStorage), envia para Cloudinary.
+    Tamanho maximo por foto: 5MB
+    Formatos aceitos: JPG, PNG, WEBP, GIF
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/routes/usuarios.js                            │
+└─────────────────────────────────────────────────────────────┘
+  Endpoints da API de clientes:
+
+    POST /api/usuarios/registrar → cria conta de cliente
+    POST /api/usuarios/login     → faz login, retorna JWT
+    GET  /api/usuarios/perfil    → retorna dados (requer JWT)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/middlewares/auth.js                           │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Protege as rotas de admin (POST, PUT, DELETE de produtos).
+    Exige o cabecalho: Authorization: Bearer ADMIN_TOKEN
+    Se o token estiver errado, retorna erro 401 (nao autorizado).
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/middlewares/authUsuario.js                    │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Protege a rota de perfil do cliente.
+    Verifica o token JWT enviado pelo cliente logado.
+    Anexa os dados do usuario em req.usuario.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ minha-api/scr/app.js                                        │
+└─────────────────────────────────────────────────────────────┘
+  Configuracoes de seguranca e rotas:
+
+    helmet()        → cabecalhos de seguranca HTTP (XSS, clickjacking)
+    cors()          → permite acesso apenas de https://storyclub.netlify.app
+                      e localhost (para desenvolvimento)
+    express-rate-limit → limite de 100 requisicoes por 15 minutos
+    GET /api/admin/verificar → endpoint para o painel admin testar a senha
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ FRONTEND — ARQUIVOS E O QUE FAZEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│ index.html — Pagina principal da loja                       │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Pagina que o cliente ve ao acessar o site.
+    Mostra os produtos em cards (cartoes).
+
+  Mudancas:
+    - Logo da loja substituido pela imagem logo.png
+    - Removido botao do carrinho do header
+    - Adicionada tela de carregamento (overlay) para quando o
+      servidor Render esta demorando para acordar
+    - Inclui config.js antes do script.js
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ script.js — Logica principal do site                        │
+└─────────────────────────────────────────────────────────────┘
+  O que faz:
+    - Busca produtos da API ao abrir a pagina
+    - Renderiza os cards de produto dinamicamente
+    - Cards sao clicaveis: clicar no card abre produto.html?id=X
+    - Botao "Comprar Agora" redireciona para o linkPagamento
+      do produto (nao navega para produto.html)
+    - Tela de carregamento aparece se a API demorar mais de 1.5s
+    - Mensagens rotativas de carregamento ("Buscando as melhores
+      ofertas...", "Preparando tudo pra voce...", etc)
+    - Barra de progresso animada durante o carregamento
+    - Busca por nome/descricao
+    - Sticky header e scroll reveal
+
+  Removido (nao existe mais):
+    - Carrinho de compras
+    - Sidebar do carrinho
+    - Checkout com MercadoPago direto no site
+    - Funcao de parcelas
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ produto.html — Pagina de detalhes do produto                │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Pagina que abre quando o cliente clica em um produto.
+    Recebe o id do produto pela URL: produto.html?id=5
+
+  O que mostra:
+    - Galeria de fotos:
+        Foto principal grande
+        Miniaturas das fotos extras clicaveis (troca a principal)
+        Se nao tiver foto, mostra o emoji do produto
+    - Nome, categoria, estrelas e numero de avaliacoes
+    - Preco atual e preco antigo riscado (se tiver)
+    - Descricao completa do produto
+    - Botao "Comprar Agora" que abre o linkPagamento em nova aba
+      Se nao tiver link, botao aparece desabilitado
+    - Secao "Voce tambem pode gostar":
+        Ate 4 produtos sugeridos
+        Prioriza produtos da mesma categoria
+        Clicar abre a pagina de detalhes desse produto
+    - Botao "Voltar para a loja"
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ admin.html — Painel de administracao                        │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Pagina de gerenciamento de produtos, protegida por senha.
+
+  Funcionalidades:
+    LOGIN:
+      Overlay de senha ao abrir. So entra quem tem o ADMIN_TOKEN.
+      Token salvo na sessao do navegador (sessionStorage).
+
+    LISTA DE PRODUTOS (lado esquerdo):
+      Mostra todos os produtos do banco com foto, nome, preco.
+      Botao Editar: preenche o formulario com os dados do produto.
+      Botao Lixeira: deleta com confirmacao.
+
+    FORMULARIO (lado direito):
+      Nome, Descricao, Preco, Preco Antigo
+      Link de Pagamento (substitui o antigo campo "Parcelas")
+      Categoria, Secao, Badge, Desconto, Estrelas, Avaliacoes, Emoji
+      Imagem Principal: area clicavel com preview antes de salvar
+      Fotos Extras: selecao de ate 4 fotos adicionais com preview
+      Botao Salvar (adicionar) ou Atualizar (editar)
+      Botao Cancelar aparece no modo de edicao
+
+    AO EDITAR:
+      Todos os campos sao preenchidos automaticamente.
+      As fotos extras existentes aparecem como miniaturas.
+      Enviar novas fotos extras substitui todas as antigas.
+      Nao enviar novas fotos mantem as existentes.
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ conta.html — Conta do cliente                               │
+└─────────────────────────────────────────────────────────────┘
+  O que e:
+    Pagina de login e cadastro para clientes da loja.
+
+  Funcionalidades:
+    Abas: "Entrar" e "Criar Conta"
+    Cadastro com nome, e-mail e senha
+    Login retorna token JWT salvo no localStorage
+    Quando logado, mostra nome do usuario e botao de sair
+    Token expira em 7 dias
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ sucesso.html / erro.html / pendente.html                    │
+└─────────────────────────────────────────────────────────────┘
+  Paginas de retorno apos pagamento.
+  Podem ser usadas como destino em plataformas de pagamento.
+    sucesso.html  → pagamento aprovado (verde)
+    erro.html     → pagamento recusado ou cancelado (vermelho)
+    pendente.html → pagamento aguardando (amarelo)
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ config.js — URL da API                                      │
+└─────────────────────────────────────────────────────────────┘
+  Define window.API_URL automaticamente:
+    Em localhost → http://localhost:3000
+    Em producao → https://minha-api-a6zk.onrender.com
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ style.css — Estilos visuais                                 │
+└─────────────────────────────────────────────────────────────┘
+  Mudancas:
+    - Removido overflow:hidden do .product-card
+      (estava cortando o botao Comprar Agora no mobile)
+    - .btn-buy agora tem display:block e white-space:nowrap
+      (o botao virou uma tag <a> e precisava dessas propriedades)
+    - Novo breakpoint @media (max-width: 480px) para celulares:
+        Fonte menor nos cards
+        Padding reduzido para caber em telas pequenas
+
+
+┌─────────────────────────────────────────────────────────────┐
+│ logo.png — Logo da loja                                     │
+└─────────────────────────────────────────────────────────────┘
+  Imagem circular da Story Club Shop.
+  Usada no header, footer e como favicon do site.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ BUGS CORRIGIDOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. linkPagamento nao salvava ao editar produto
+     Causa: produto.save() do Mongoose nao detectava mudanca
+            em campos que eram nulos desde sempre no banco.
+     Solucao: trocado para findOneAndUpdate + $set que vai
+              diretamente no MongoDB sem depender do rastreamento.
+
+  2. Backend com codigo desatualizado no Render
+     Causa: mudancas feitas localmente mas nao commitadas/enviadas.
+     Solucao: sempre fazer git add + git commit + git push
+              depois de qualquer mudanca no backend.
+
+  3. Botao "Comprar Agora" cortado no mobile
+     Causa: .product-card tinha overflow:hidden e o botao (<a>)
+            nao tinha display:block.
+     Solucao: removido overflow:hidden do card, adicionado
+              display:block e white-space:nowrap no botao.
+
+  4. Texto "Acordando o servidor" aparecia para o cliente
+     Causa: mensagem tecnica exposta no overlay de carregamento.
+     Solucao: trocado para mensagens neutras como "Buscando as
+              melhores ofertas..." sem mencionar servidor.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -36,249 +366,67 @@ Atualizado em: Junho 2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   minha-api/
-  ├── .env                    senhas e tokens reais (nunca vai ao GitHub)
-  ├── .env.example            modelo das variaveis (vai ao GitHub)
-  ├── .gitignore              protege .env e node_modules
-  ├── package.json            dependencias e scripts npm
+  ├── .env                [NAO VAI AO GITHUB] credenciais reais
+  ├── .env.example        modelo do .env (sem valores reais)
+  ├── .gitignore          protege .env e node_modules
+  ├── package.json        dependencias e scripts
   └── scr/
-      ├── app.js              configura o Express, CORS, rotas, seguranca
-      ├── server.js           ponto de entrada, conecta banco e inicia servidor
-      ├── db.js               conecta ao MongoDB Atlas
-      ├── cloudinaryConfig.js configura SDK do Cloudinary
-      ├── seed.js             popula banco com 12 produtos na primeira vez
-      ├── middlewares/
-      │   ├── auth.js         protege rotas admin com ADMIN_TOKEN
-      │   └── authUsuario.js  protege rotas de cliente com JWT
+      ├── app.js          Express + helmet + cors + rate-limit
+      ├── server.js       inicia o servidor + conecta MongoDB
+      ├── db.js           conexao com MongoDB Atlas
+      ├── cloudinaryConfig.js  configura SDK do Cloudinary
+      ├── seed.js         popula banco na primeira vez
       ├── models/
-      │   ├── Produto.js      schema do produto no MongoDB
-      │   └── Usuario.js      schema do usuario/cliente no MongoDB
+      │   ├── Produto.js  schema de produto (com linkPagamento e imagens[])
+      │   └── Usuario.js  schema de cliente
       ├── controllers/
-      │   ├── produtosController.js   CRUD de produtos com Cloudinary
-      │   ├── pagamentoController.js  cria preferencia no MercadoPago
-      │   └── usuariosController.js   cadastro, login e perfil de clientes
+      │   ├── produtosController.js  CRUD + Cloudinary + findOneAndUpdate
+      │   ├── usuariosController.js  registrar/login/perfil com JWT+bcrypt
+      │   └── pagamentoController.js preferencias MercadoPago (legado)
       ├── routes/
-      │   ├── produtos.js     endpoints de produtos (multer + auth admin)
-      │   ├── pagamento.js    endpoint de pagamento
-      │   └── usuarios.js     endpoints de cadastro/login/perfil
-      └── data/
-          └── produtos.json   12 produtos iniciais para seed
+      │   ├── produtos.js  upload.fields (imagem x1 + imagens x4)
+      │   ├── usuarios.js  registrar, login, perfil
+      │   └── pagamento.js criar preferencia MercadoPago
+      └── middlewares/
+          ├── auth.js       ADMIN_TOKEN Bearer para rotas admin
+          └── authUsuario.js  JWT para rotas de cliente
 
-  storeclubshop-site/
-  ├── index.html              loja principal
-  ├── style.css               estilos do site
-  ├── script.js               logica da loja (produtos, carrinho, checkout)
-  ├── config.js               URL da API (local vs Netlify)
-  ├── admin.html              painel do administrador
-  ├── conta.html              cadastro e login de clientes
-  ├── sucesso.html            exibida apos pagamento aprovado
-  ├── erro.html               exibida apos pagamento cancelado
-  ├── pendente.html           exibida apos pagamento pendente
-  ├── netlify.toml            configuracao de deploy e headers de seguranca
-  ├── COMO_USAR.txt           guia de uso completo
-  ├── DEPLOY_ONLINE.txt       guia de deploy online
-  └── ALTERACOES_E_CODIGO.txt este arquivo
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- BACKEND — DESCRICAO DOS ARQUIVOS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[ app.js ]
-  Configura o servidor Express com:
-  - helmet(): adiciona headers de seguranca HTTP
-  - rate limiting: max 100 req/15min geral, 20 req/15min em pagamentos
-  - CORS com whitelist: so aceita requisicoes de localhost e FRONTEND_URL
-  - Rotas: /api/produtos, /api/pagamento, /api/usuarios, /api/admin/verificar
-
-[ server.js ]
-  Ponto de entrada da aplicacao:
-  - Carrega o .env com dotenv
-  - Conecta ao MongoDB antes de ligar o servidor
-  - Chama seed() para popular o banco se estiver vazio
-  - Inicia o servidor na porta do .env (ou 3000)
-
-[ db.js ]
-  Conecta ao MongoDB Atlas via Mongoose usando a MONGODB_URI do .env.
-
-[ cloudinaryConfig.js ]
-  Configura o SDK do Cloudinary com as 3 credenciais do .env.
-
-[ seed.js ]
-  Insere os 12 produtos do produtos.json no banco se ele estiver vazio.
-  Roda automaticamente na primeira inicializacao.
-
-[ middlewares/auth.js ]
-  Protege as rotas do admin (POST/PUT/DELETE de produtos).
-  Verifica o header: Authorization: Bearer ADMIN_TOKEN
-  Se o token estiver errado ou ausente, retorna erro 401.
-  Se o ADMIN_TOKEN nao estiver configurado no .env, retorna erro 500.
-
-[ middlewares/authUsuario.js ]
-  Protege rotas de clientes logados (ex: ver perfil).
-  Verifica o JWT no header Authorization.
-  Se valido, adiciona req.usuario com os dados do cliente.
-  Se invalido ou expirado, retorna erro 401.
-
-[ models/Produto.js ]
-  Schema do produto com os campos:
-    id, nome, descricao, preco, precoAntigo, parcelas,
-    estrelas, avaliacoes, badge, badgeOff, categoria,
-    emoji, imagem, imagemPublicId, secao
-  Configuracoes:
-    - maxlength nos campos de texto (seguranca)
-    - imagemPublicId e removido do JSON (nao expoe ao cliente)
-    - _id e __v sao removidos do JSON
-
-[ models/Usuario.js ]
-  Schema do cliente com: nome, email, senha (hash bcrypt)
-  - email e convertido para minusculo automaticamente
-  - senha e removida do JSON (nao expoe ao cliente nunca)
-
-[ controllers/produtosController.js ]
-  CRUD completo:
-  - listar(): retorna todos os produtos do MongoDB
-  - obter(): retorna um produto por id numerico
-  - criar(): recebe formulario, faz upload da imagem no Cloudinary, salva no banco
-  - atualizar(): deleta imagem antiga do Cloudinary, faz upload da nova, atualiza banco
-  - deletar(): deleta imagem do Cloudinary e remove do banco
-
-[ controllers/pagamentoController.js ]
-  - Recebe o carrinho do frontend (IDs e quantidades)
-  - Busca os precos REAIS no MongoDB (nunca confia nos precos do cliente)
-  - Cria a preferencia no MercadoPago com os itens validados
-  - Retorna init_point (producao) e sandbox_init_point (teste)
-
-[ controllers/usuariosController.js ]
-  - registrar(): cria conta com senha criptografada (bcrypt, 12 rounds)
-                 retorna JWT de 7 dias + dados do usuario
-  - login(): verifica email e senha, retorna JWT + dados do usuario
-  - perfil(): retorna dados do cliente logado (requer JWT valido)
-
-[ routes/produtos.js ]
-  GET    /api/produtos        → publico
-  GET    /api/produtos/:id    → publico
-  POST   /api/produtos        → protegido (auth admin)
-  PUT    /api/produtos/:id    → protegido (auth admin)
-  DELETE /api/produtos/:id    → protegido (auth admin)
-  Upload de imagem via multer (memoryStorage, max 5MB, so JPG/PNG/WebP/GIF)
-
-[ routes/usuarios.js ]
-  POST /api/usuarios/registrar  → cria conta de cliente
-  POST /api/usuarios/login      → faz login, retorna JWT
-  GET  /api/usuarios/perfil     → retorna perfil (requer JWT)
-
-[ routes/pagamento.js ]
-  POST /api/pagamento/criar-preferencia → cria pagamento no MercadoPago
+  storeclubshop-site_backup/
+  ├── index.html          pagina principal com overlay de carregamento
+  ├── produto.html        pagina de detalhes + galeria + sugestoes
+  ├── admin.html          painel admin com multiplas fotos e linkPagamento
+  ├── conta.html          login/cadastro de clientes
+  ├── sucesso.html        pos-pagamento aprovado
+  ├── erro.html           pos-pagamento cancelado
+  ├── pendente.html       pos-pagamento pendente
+  ├── style.css           estilos + correcoes mobile
+  ├── script.js           carregamento de produtos + overlay animado
+  ├── config.js           URL da API (auto-detecta local vs producao)
+  ├── logo.png            logo circular da loja
+  ├── netlify.toml        configuracao do Netlify (cabecalhos seguranca)
+  ├── COMO_USAR.txt       guia de uso do painel admin
+  ├── DEPLOY_ONLINE.txt   como publicar atualizacoes
+  ├── ALTERACOES_E_CODIGO.txt  este arquivo
+  ├── GUIA_DO_DONO.txt    guia nao tecnico para o dono
+  └── CONTAS_E_SERVICOS.txt   todas as contas e credenciais
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- FRONTEND — DESCRICAO DOS ARQUIVOS
+ RESUMO DAS ROTAS DA API
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[ config.js ]
-  Define window.API_URL automaticamente:
-  - localhost/127.0.0.1 → http://localhost:3000
-  - qualquer outro (Netlify) → https://minha-api-a6zk.onrender.com
-  Incluido em index.html, admin.html e conta.html antes dos outros scripts.
+  GET    /                              API online (health check)
+  GET    /api/produtos                  lista todos os produtos
+  GET    /api/produtos/:id              retorna produto por id
+  POST   /api/produtos                  cria produto [ADMIN_TOKEN]
+  PUT    /api/produtos/:id              atualiza produto [ADMIN_TOKEN]
+  DELETE /api/produtos/:id              deleta produto [ADMIN_TOKEN]
+  GET    /api/admin/verificar           valida o ADMIN_TOKEN [ADMIN_TOKEN]
 
-[ index.html ]
-  Loja principal. Alteracoes:
-  - Botao "Conta" agora aponta para conta.html
-  - Inclui config.js antes do script.js
+  POST   /api/usuarios/registrar        cria conta de cliente
+  POST   /api/usuarios/login            faz login, retorna JWT
+  GET    /api/usuarios/perfil           dados do cliente [JWT]
 
-[ script.js ]
-  Logica completa da loja:
-  - Carrega produtos da API ao abrir a pagina
-  - Renderiza cards com imagem, preco, badge, etc
-  - Carrinho completo (localStorage, adicionar, remover, alterar qtd)
-  - Sidebar de carrinho (abre/fecha com animacao)
-  - Checkout: POST para /api/pagamento → redireciona para MercadoPago
-  - Toast de notificacao (verde/vermelho)
-  - Scroll reveal, sticky header, busca, nav ativo
-  - Escape de HTML (escHtml) para prevenir XSS
-
-[ admin.html ]
-  Painel do administrador. Recursos:
-  - Tela de login com ADMIN_TOKEN (verifica contra /api/admin/verificar)
-  - Token salvo em sessionStorage (some ao fechar o navegador)
-  - Botao "Sair" no header
-  - Lista todos os produtos com opcoes de editar e excluir
-  - Formulario de cadastro/edicao com preview de imagem
-  - Todas as chamadas mutantes incluem: Authorization: Bearer TOKEN
-  - Respostas 401 forcam logout automatico
-
-[ conta.html ]
-  Pagina de conta do cliente. Recursos:
-  - Abas: "Entrar" e "Criar Conta"
-  - Cadastro: nome, email, senha (minimo 6 caracteres)
-  - Login: email e senha
-  - Token JWT salvo em localStorage (storyclub_token)
-  - Dados do usuario salvos em localStorage (storyclub_usuario)
-  - Exibe perfil (nome e email) quando logado
-  - Botao "Sair" limpa localStorage e volta para o formulario
-  - Separado do admin: nao da acesso ao painel
-
-[ sucesso.html / erro.html / pendente.html ]
-  Paginas exibidas apos o pagamento no MercadoPago:
-  - sucesso.html: pagamento aprovado (verde)
-  - erro.html: pagamento cancelado (vermelho)
-  - pendente.html: pagamento em processamento (amarelo)
-  Todas tem botao "Voltar a Loja".
-
-[ netlify.toml ]
-  - Define pasta raiz "." como diretorio de publicacao
-  - Adiciona headers de seguranca: X-Frame-Options, X-Content-Type-Options,
-    Referrer-Policy em todas as paginas
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- VARIAVEIS DE AMBIENTE (.env)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  MONGODB_URI          string de conexao com o banco Atlas
-  CLOUDINARY_CLOUD_NAME nome da conta no Cloudinary
-  CLOUDINARY_API_KEY   chave publica da API Cloudinary
-  CLOUDINARY_API_SECRET chave privada da API Cloudinary
-  MP_ACCESS_TOKEN      token do MercadoPago (TEST- ou APP_USR-)
-  FRONTEND_URL         URL do site Netlify (para liberar CORS)
-  ADMIN_TOKEN          senha do painel admin (min 20 caracteres)
-  JWT_SECRET           segredo para assinar tokens de clientes
-  PORT                 porta do servidor (3000 local, auto no Render)
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- DEPENDENCIAS INSTALADAS (npm)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  express        servidor HTTP
-  cors           permite requisicoes entre dominios diferentes
-  helmet         adiciona headers de seguranca HTTP
-  express-rate-limit limita numero de requisicoes por IP
-  multer         recebe upload de arquivos via formulario
-  mongoose       ODM para MongoDB (schemas e queries)
-  cloudinary     SDK para upload/delete de imagens
-  mercadopago    SDK oficial para criar preferencias de pagamento
-  dotenv         le o .env e injeta no process.env
-  bcryptjs       criptografa e verifica senhas de clientes
-  jsonwebtoken   gera e verifica tokens JWT de autenticacao
-  nodemon        (dev) reinicia o servidor ao salvar arquivos
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- SEGURANCA IMPLEMENTADA
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  - Helmet: headers HTTP que previnem XSS, clickjacking e MIME sniffing
-  - Rate limiting: evita ataques de forca bruta e abuso da API
-  - CORS com whitelist: so aceita requisicoes de origens conhecidas
-  - ADMIN_TOKEN: rotas de escrita de produtos so aceitam requisicoes autenticadas
-  - JWT: clientes autenticados com token de 7 dias assinado com segredo
-  - bcrypt (12 rounds): senhas de clientes nunca salvas em texto puro
-  - Precos do banco: pagamentoController busca precos no MongoDB,
-    nunca confia nos precos enviados pelo cliente (previne manipulacao)
-  - imagemPublicId oculto: ID interno do Cloudinary nao e exposto na API
-  - Tipos de arquivo restritos: upload aceita so JPG, PNG, WebP e GIF (sem SVG)
-  - escHtml(): todos os dados externos sao escapados antes de ir ao HTML
-  - maxlength nos schemas: evita campos gigantes no banco
+  POST   /api/pagamento/criar-preferencia   cria preferencia MercadoPago
 
 ================================================================

@@ -1,0 +1,182 @@
+================================================================
+   STORY CLUB SHOP — CONTAS E SERVICOS UTILIZADOS
+================================================================
+Ultima atualizacao: Junho 2026
+E-mail usado em todos os servicos: alvaristowilliam@gmail.com
+================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1. GITHUB — Codigo fonte
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Site:     https://github.com
+  Usuario:  Morphine30
+  Funcao:   Armazena o codigo do site e da API na nuvem.
+            O Netlify e o Render buscam o codigo daqui.
+
+  Repositorios:
+    Frontend: https://github.com/Morphine30/storeclubshop-site
+    Backend:  https://github.com/Morphine30/minha-api
+
+  Credenciais: login com e-mail + senha do GitHub
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 2. NETLIFY — Hospedagem do site (frontend)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Site:        https://netlify.com
+  Painel:      https://app.netlify.com
+  Funcao:      Hospeda as paginas HTML/CSS/JS do site
+  URL do site: https://storyclub.netlify.app
+
+  Paginas publicadas:
+    /              → loja principal
+    /admin.html    → painel admin (protegido por senha)
+    /conta.html    → login e cadastro de clientes
+    /produto.html  → pagina de detalhes de cada produto
+    /sucesso.html  → pagina pos-pagamento aprovado
+    /erro.html     → pagina pos-pagamento cancelado
+    /pendente.html → pagina pos-pagamento pendente
+
+  Credenciais:      login com GitHub
+  Repo conectado:   Morphine30/storeclubshop-site (branch main)
+  Deploy automatico: sim (a cada push no GitHub)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 3. RENDER — Hospedagem da API (backend)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Site:       https://render.com
+  Painel:     https://dashboard.render.com
+  Funcao:     Roda o servidor Node.js (API de produtos e usuarios)
+  URL da API: https://minha-api-a6zk.onrender.com
+
+  Servico:     minha-api (Web Service, plano Free)
+  Repo:        Morphine30/minha-api (branch main)
+  Deploy auto: sim (a cada push no GitHub)
+
+  Credenciais: login com GitHub
+
+  Variaveis de ambiente configuradas:
+    MONGODB_URI, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY,
+    CLOUDINARY_API_SECRET, MP_ACCESS_TOKEN, FRONTEND_URL,
+    ADMIN_TOKEN, JWT_SECRET
+
+  AVISO: No plano Free, o servidor "adormece" apos 15 min
+  sem visitas. A primeira requisicao demora ~30 segundos.
+  O site mostra uma tela de carregamento automaticamente.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 4. MONGODB ATLAS — Banco de dados
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Site:    https://mongodb.com/atlas
+  Painel:  https://cloud.mongodb.com
+  Funcao:  Armazena produtos e contas de clientes
+  Plano:   M0 (gratuito, 512MB)
+  Cluster: storeclubshop
+
+  Usuario do banco: Morph
+  Senha do banco:   ver arquivo .env (campo MONGODB_URI)
+
+  Acesso de rede: 0.0.0.0/0 (aberto para o Render conectar)
+
+  Colecoes criadas:
+    produtos  → catalogo de produtos da loja
+    usuarios  → contas dos clientes
+
+  Para ver uso do banco:
+    Painel > cluster storeclubshop > aba "Collections" ou "Metrics"
+
+  Credenciais: login com e-mail + senha do MongoDB
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 5. CLOUDINARY — Armazenamento de imagens
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Site:       https://cloudinary.com
+  Painel:     https://console.cloudinary.com
+  Funcao:     Armazena as fotos dos produtos
+              (imagem principal + ate 4 fotos extras por produto)
+  Plano:      Free (25 GB de armazenamento)
+  Cloud Name: dk1g0qty0
+  Pasta:      storeclubshop
+
+  As chaves API estao em: C:\Users\Morph\minha-api\.env
+    CLOUDINARY_CLOUD_NAME
+    CLOUDINARY_API_KEY
+    CLOUDINARY_API_SECRET
+
+  Credenciais: login com e-mail + senha do Cloudinary
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 6. MERCADOPAGO — Pagamentos (uso opcional por produto)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Site:       https://mercadopago.com.br
+  Painel dev: https://mercadopago.com.br/developers
+  Funcao:     Pode ser usado para gerar links de pagamento
+              por produto. Nao ha integracao automatica —
+              voce gera o link no MercadoPago e cola no campo
+              "Link de Pagamento" do painel admin.
+
+  Como gerar um link de cobranca:
+    1. Acesse mercadopago.com.br
+    2. Va em "Cobrar" > "Link de pagamento"
+    3. Preencha o produto e gere o link
+    4. Cole esse link no admin do site
+
+  Para ver transacoes: mercadopago.com.br → Atividades
+  Aplicacao: Storeclub (em developers → Suas integracoes)
+
+  O Access Token esta em: C:\Users\Morph\minha-api\.env
+  Credenciais: login com e-mail + senha do MercadoPago
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ SENHAS INTERNAS DO SISTEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ADMIN_TOKEN (senha do painel admin):
+    Ver arquivo: C:\Users\Morph\Desktop\SENHA_ADMIN_TOKEN.txt
+    Ver tambem:  C:\Users\Morph\minha-api\.env
+
+  JWT_SECRET (segredo de login dos clientes):
+    Ver arquivo: C:\Users\Morph\minha-api\.env
+    (nao precisa memorizar — e usado automaticamente)
+
+  NUNCA compartilhe ADMIN_TOKEN ou JWT_SECRET com ninguem.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ARQUIVOS IMPORTANTES NO SEU COMPUTADOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  C:\Users\Morph\minha-api\.env
+    → Todas as credenciais e segredos do sistema (nao enviar ao GitHub)
+
+  C:\Users\Morph\Desktop\SENHA_ADMIN_TOKEN.txt
+    → Senha do painel admin com instrucoes de uso
+
+  C:\Users\Morph\Desktop\storyclubshop-site_backup\
+    → Pasta com todo o codigo do site (frontend)
+
+  C:\Users\Morph\minha-api\
+    → Pasta com todo o codigo da API (backend)
+
+================================================================
+ RESUMO RAPIDO
+
+  Site ao vivo:   https://storyclub.netlify.app
+  API ao vivo:    https://minha-api-a6zk.onrender.com
+  Painel admin:   https://storyclub.netlify.app/admin.html
+  Conta cliente:  https://storyclub.netlify.app/conta.html
+  GitHub:         https://github.com/Morphine30
+
+================================================================

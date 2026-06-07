@@ -1,228 +1,144 @@
 ================================================================
-   STORY CLUB SHOP — GUIA COMPLETO DE USO
+   STORY CLUB SHOP — COMO USAR O PAINEL ADMIN
+   (site ja esta no ar — nao precisa rodar nada localmente)
 ================================================================
-Atualizado em: Junho 2026
+Ultima atualizacao: Junho 2026
 ================================================================
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- VISAO GERAL DO SISTEMA
+ SEU SITE JA ESTA FUNCIONANDO ONLINE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  O site tem 3 areas:
+  Site para clientes:  https://storyclub.netlify.app
+  Painel admin:        https://storyclub.netlify.app/admin.html
+  Conta de cliente:    https://storyclub.netlify.app/conta.html
 
-  [1] LOJA (index.html)
-      Pagina publica que os clientes acessam.
-      Mostra os produtos, carrinho e finaliza compra.
-
-  [2] PAINEL ADMIN (admin.html)
-      So voce tem acesso. Requer senha (ADMIN_TOKEN).
-      Cadastra, edita e remove produtos com imagens.
-
-  [3] CONTA DO CLIENTE (conta.html)
-      Clientes criam conta e fazem login.
-      Separado do admin — nao da acesso ao painel.
+  Tudo funciona direto no navegador, de qualquer lugar.
+  Nao precisa abrir terminal nem ligar servidor local.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PARTE 1 — RODAR LOCALMENTE (no seu computador)
+ COMO ADICIONAR UM PRODUTO NOVO
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
- PASSO 1 — Instalar o Node.js (so faz uma vez)
+  1. Acesse: https://storyclub.netlify.app/admin.html
+  2. Digite a senha (esta no arquivo SENHA_ADMIN_TOKEN.txt)
+  3. No formulario do lado direito, preencha:
 
-  1. Vai em: https://nodejs.org
-  2. Clica no botao verde "LTS"
-  3. Instala (fica clicando Next ate terminar)
-  4. Reinicia o computador
-  5. Para confirmar, abre o terminal e digita:
-       node -v
-     Deve aparecer: v20.x.x
+     CAMPOS OBRIGATORIOS:
+       Nome        → nome do produto (ex: Caneca Personalizada)
+       Descricao   → descricao curta (ex: Ceramica 300ml com alca)
+       Preco       → preco atual em reais (ex: 49.90)
+       Categoria   → escolhe na lista (Eletrônicos, Beleza, etc)
 
- PASSO 2 — Instalar o VS Code (so faz uma vez)
+     CAMPOS OPCIONAIS:
+       Preco Antigo  → preco riscado (ex: 79.90)
+       Link de Pagamento → URL para onde o botao "Comprar Agora" vai
+                           levar o cliente. Pode ser qualquer link:
+                           MercadoPago, WhatsApp, Shopee, etc.
+                           Ex: https://link.mercadopago.com.br/seuproduto
+       Secao         → "Mais Vendidos" ou "Novidades"
+       Badge         → etiqueta colorida (ex: 🔥 Viral)
+       Desconto      → etiqueta de desconto (ex: -30%)
+       Estrelas      → avaliacao de 1 a 5 estrelas
+       Avaliacoes    → numero de avaliacoes (ex: 247)
+       Emoji         → aparece quando nao tem foto (ex: 📦)
 
-  1. Vai em: https://code.visualstudio.com
-  2. Clica em "Download for Windows" e instala
-
- PASSO 3 — Instalar Live Server no VS Code (so faz uma vez)
-
-  1. Abre o VS Code
-  2. Clica no icone de 4 quadradinhos (Extensions)
-  3. Pesquisa: Live Server
-  4. Instala o primeiro resultado (de Ritwick Dey)
-
- PASSO 4 — Configurar o arquivo .env
-
-  O arquivo .env fica em: C:\Users\Morph\minha-api\.env
-  Ele ja esta preenchido com suas credenciais reais.
-  Se precisar abrir: clique duplo ou abra com o Bloco de Notas.
-
-  Campos do .env:
-
-    MONGODB_URI        → string de conexao do MongoDB Atlas
-    CLOUDINARY_*       → credenciais do Cloudinary (imagens)
-    MP_ACCESS_TOKEN    → token do MercadoPago (pagamentos)
-    FRONTEND_URL       → URL do site (localhost ou Netlify)
-    ADMIN_TOKEN        → senha do painel admin (nao compartilhe!)
-    JWT_SECRET         → segredo para login de clientes (nao compartilhe!)
-    PORT               → porta do servidor (3000 local)
-
- PASSO 5 — Ligar o servidor
-
-  1. Abre o terminal (Windows + R → digita cmd → Enter)
-  2. Digita: cd C:\Users\Morph\minha-api
-  3. Digita: npm run dev
-  4. Aguarda aparecer:
-       MongoDB conectado
-       Servidor rodando em http://localhost:3000
-
-  IMPORTANTE: Deixa essa janela aberta enquanto usa o site!
-  Para parar: aperta Ctrl + C.
-
- PASSO 6 — Abrir o site
-
-  1. Abre o VS Code
-  2. File > Open Folder > seleciona: storyclubshop-site
-  3. Clica em index.html
-  4. Clica em "Go Live" (canto inferior direito)
-  5. Navegador abre em: http://127.0.0.1:5500
-
- ROTINA DO DIA A DIA (resumo)
-
-  [1] Terminal → cd C:\Users\Morph\minha-api → npm run dev
-  [2] VS Code → abre storyclubshop-site → Go Live
-  [3] Pronto!
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PARTE 2 — PAINEL ADMIN (cadastro e edicao de produtos)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
- COMO ACESSAR O PAINEL ADMIN
-
-  Local:    http://127.0.0.1:5500/admin.html
-  Online:   https://storyclub.netlify.app/admin.html
-
-  Ao abrir, aparece a tela de login.
-  A senha e o valor do ADMIN_TOKEN salvo no arquivo:
-    C:\Users\Morph\Desktop\SENHA_ADMIN_TOKEN.txt
-
-  Apos entrar, o painel fica disponivel ate voce clicar em "Sair".
-  Caso fique muito tempo sem usar, precisara fazer login novamente.
-
- COMO CADASTRAR UM PRODUTO
-
-  1. Acesse o painel admin e faca login
-  2. Clique em "Novo Produto" (ou role ate o formulario)
-  3. Preencha os campos:
-
-     Nome*         → nome do produto (obrigatorio)
-     Descricao*    → descricao curta (obrigatorio)
-     Preco*        → valor em reais, ex: 49.90 (obrigatorio)
-     Preco Antigo  → valor riscado, ex: 79.90 (opcional)
-     Parcelas      → texto livre, ex: ou 3x de R$16,63 (opcional)
-     Estrelas      → avaliacao de 1 a 5
-     Avaliacoes    → numero de avaliadores, ex: 1284
-     Badge         → etiqueta colorida, ex: Viral (opcional)
-     Desconto      → ex: -30% (opcional)
-     Categoria     → ex: Organizacao, Cozinha, Saude...
-     Emoji         → aparece se nao tiver foto, ex: 📦
-     Secao         → onde aparece: "mais-vendidos" ou "novidades"
-     Imagem        → clique na area pontilhada e escolha um arquivo
-                     (JPG, PNG ou WebP — ate 5MB)
+     FOTOS:
+       Imagem Principal → clica na area pontilhada e escolhe a foto
+                          (JPG, PNG ou WEBP, ate 5MB)
+       Fotos Extras     → clica em "Selecionar fotos extras" para
+                          adicionar ate 4 fotos adicionais que vao
+                          aparecer na pagina de detalhes do produto
 
   4. Clique em "Salvar Produto"
-  5. O produto aparece na lista e no site instantaneamente
+  5. O produto aparece no site na hora!
 
- COMO EDITAR UM PRODUTO
 
-  1. Na lista de produtos, clique em "Editar" no produto desejado
-  2. O formulario e preenchido automaticamente com os dados atuais
-  3. Altere o que quiser
-  4. Para trocar a imagem: clique na area de imagem e escolha outra foto
-     (a imagem antiga e deletada automaticamente do Cloudinary)
-  5. Clique em "Salvar"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ COMO EDITAR UM PRODUTO EXISTENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+  1. No painel admin, na lista da esquerda, clique em "Editar"
+     no produto que quer alterar.
+  2. O formulario da direita preenche automaticamente com os dados.
+  3. Mude o que quiser (preco, link, fotos, etc).
+  4. Clique em "Atualizar Produto".
+
+  DICA SOBRE AS FOTOS AO EDITAR:
+    - Se nao selecionar nova imagem principal, a foto atual e mantida.
+    - Se selecionar fotos extras novas, elas SUBSTITUEM todas as antigas.
+    - Se nao selecionar fotos extras, as antigas sao mantidas.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  COMO REMOVER UM PRODUTO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  1. Na lista de produtos, clique em "Excluir"
-  2. Confirme a exclusao
-  3. O produto e removido do site e do banco de dados
+  1. Na lista da esquerda, clique no icone de lixeira (🗑️)
+  2. Confirme a exclusao na caixa que aparece
+  3. O produto some do site instantaneamente
+     (a imagem tambem e removida do Cloudinary automaticamente)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PARTE 3 — CONTA DE CLIENTE (login e cadastro)
+ COMO O CLIENTE COMPRA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  A pagina de conta dos clientes fica em:
+  1. Cliente acessa https://storyclub.netlify.app
+  2. Clica em cima do produto para ver os detalhes, fotos e descricao
+  3. Na pagina do produto, clica em "Comprar Agora"
+  4. E redirecionado para o link que voce cadastrou no produto
+     (pode ser MercadoPago, WhatsApp, Shopee, qualquer link)
 
-    Local:   http://127.0.0.1:5500/conta.html
-    Online:  https://storyclub.netlify.app/conta.html
-
-  O cliente pode:
-    - Criar uma conta com nome, e-mail e senha
-    - Fazer login
-    - Ver seu nome e e-mail no perfil
-    - Clicar em "Sair" para deslogar
-
-  IMPORTANTE:
-    A conta de cliente NAO da acesso ao painel admin.
-    Sao sistemas separados com senhas diferentes.
-    A senha minima para clientes e 6 caracteres.
+  OBS: Se o produto nao tiver link de pagamento cadastrado,
+  o botao "Comprar Agora" fica desabilitado.
+  Sempre cadastre o link ao adicionar um produto.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PARTE 4 — FLUXO DE COMPRA DO CLIENTE
+ O SITE DEMORA PARA CARREGAR (SERVIDOR DORMINDO)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  1. Cliente entra no site (index.html)
-  2. Clica em "Comprar Agora" nos produtos que quer
-  3. O numero no icone do carrinho vai aumentando
-  4. Clica no botao do Carrinho (canto direito do header)
-  5. Abre um painel lateral com todos os itens
-  6. Pode aumentar/diminuir quantidade ou remover itens
-  7. Clica em "Finalizar Compra"
-  8. E redirecionado para o MercadoPago
-  9. Paga com PIX, Cartao ou Boleto
-  10. Apos o pagamento:
-      → Aprovado:  vai para /sucesso.html
-      → Cancelado: vai para /erro.html
-      → Pendente:  vai para /pendente.html
-      Todas as paginas tem botao de "Voltar a Loja"
+  No plano gratuito do Render, o servidor "adormece" se ficar
+  15 minutos sem nenhum cliente acessar o site.
+
+  Quando isso acontece:
+  - O site abre normalmente (Netlify nao adormece)
+  - Uma tela de carregamento aparece com mensagens como
+    "Buscando as melhores ofertas..." enquanto aguarda
+  - Em 20 a 40 segundos o servidor acorda e os produtos aparecem
+  - Nao precisa fazer nada, e automatico
+
+  Para evitar esse atraso: assine o plano pago do Render ($7/mes)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- PARTE 5 — PROBLEMAS COMUNS
+ PROBLEMAS COMUNS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  Servidor nao liga / da erro de MongoDB
-    → A MONGODB_URI no .env esta errada
-    → O IP 0.0.0.0/0 nao foi liberado no MongoDB Atlas
+  Nao consigo entrar no painel admin
+    → Verifique a senha no arquivo SENHA_ADMIN_TOKEN.txt
 
-  Produtos nao aparecem no site
-    → O servidor nao esta rodando (faz npm run dev)
-    → Confirma que apareceu "MongoDB conectado" no terminal
+  Produtos nao aparecem (ficou na tela de carregamento)
+    → Aguarde 40 segundos e recarregue (F5)
+    → Se continuar, o servidor pode estar com problema.
+      Acesse https://dashboard.render.com e veja se esta "Live"
 
-  Imagem nao aparece apos cadastrar produto
-    → Credenciais do Cloudinary no .env estao erradas
-    → Revisa CLOUDINARY_CLOUD_NAME, API_KEY e API_SECRET
+  Foto nao aparece apos salvar produto
+    → As credenciais do Cloudinary podem estar erradas no Render.
+      Verifique CLOUDINARY_CLOUD_NAME, API_KEY e API_SECRET.
 
-  Finalizar Compra da erro
-    → O MP_ACCESS_TOKEN no .env esta errado
+  Botao "Comprar Agora" nao faz nada
+    → O produto nao tem link de pagamento cadastrado.
+      Edite o produto e adicione o Link de Pagamento.
 
-  Painel admin nao aceita a senha
-    → Confere o ADMIN_TOKEN no arquivo .env
-    → A senha correta esta em: SENHA_ADMIN_TOKEN.txt na area de trabalho
-
-  Login de cliente da erro de "Token"
-    → O JWT_SECRET nao foi adicionado no Render
-    → Adiciona a variavel JWT_SECRET no painel do Render.com
-
-  "Go Live" nao aparece no VS Code
-    → A extensao Live Server nao foi instalada (instala no passo 3)
-
-  npm nao reconhecido
-    → Node.js nao instalado ou computador nao reiniciou
+  Link de pagamento nao esta sendo salvo ao editar
+    → Isso foi corrigido. Se o problema voltar, entre em contato
+      com o desenvolvedor.
 
 ================================================================
- PARA PUBLICAR ONLINE: leia o arquivo DEPLOY_ONLINE.txt
+ Para publicar mudancas no codigo: leia DEPLOY_ONLINE.txt
+ Todas as contas e senhas dos servicos: CONTAS_E_SERVICOS.txt
 ================================================================

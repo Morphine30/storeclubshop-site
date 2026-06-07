@@ -1,0 +1,202 @@
+================================================================
+   STORY CLUB SHOP — GUIA DO DONO
+   Tudo que voce precisa saber para gerenciar seu site
+================================================================
+Ultima atualizacao: Junho 2026
+================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ SEU SITE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Endereco do site (o que voce passa para os clientes):
+  https://storyclub.netlify.app
+
+  Seu site funciona 24 horas por dia, 7 dias por semana,
+  sem precisar deixar o computador ligado.
+  Tudo esta hospedado na internet.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ COMO ADICIONAR OU EDITAR PRODUTOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Abra o navegador e acesse:
+     https://storyclub.netlify.app/admin.html
+
+  2. Digite a senha do painel (esta no arquivo SENHA_ADMIN_TOKEN.txt
+     que esta na sua area de trabalho).
+
+  3. Para ADICIONAR um produto:
+     - Preencha os campos: Nome, Descricao, Preco (obrigatorios)
+     - Cole o link de pagamento no campo "Link de Pagamento"
+       (esse e o link para onde o cliente vai ao clicar em Comprar)
+     - Clique na area pontilhada para escolher a foto principal
+     - Opcionalmente, adicione ate 4 fotos extras clicando em
+       "Selecionar fotos extras"
+     - Clique em "Salvar Produto"
+     - O produto ja aparece no site na hora!
+
+  4. Para EDITAR um produto existente:
+     - Na lista da esquerda, clique em "Editar" no produto desejado
+     - Altere o que quiser (nome, preco, link de pagamento, foto, etc)
+     - Clique em "Atualizar Produto"
+
+  5. Para REMOVER um produto:
+     - Clique no icone de lixeira (🗑️) ao lado do produto
+     - Confirme a exclusao
+
+  DICA: Voce pode acessar o painel de qualquer celular ou computador,
+  de qualquer lugar, sem precisar instalar nada.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ O LINK DE PAGAMENTO — COMO FUNCIONA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Cada produto tem o seu proprio link de pagamento.
+  Quando o cliente clicar em "Comprar Agora", ele e enviado
+  direto para esse link.
+
+  Voce pode usar qualquer plataforma de pagamento:
+  - MercadoPago (link de cobranca)
+  - PagSeguro
+  - WhatsApp (link do seu numero)
+  - Instagram
+  - Shopee, Magalu, qualquer loja
+
+  Como gerar um link no MercadoPago:
+  1. Acesse: https://www.mercadopago.com.br
+  2. Va em "Cobrar" ou "Link de pagamento"
+  3. Crie um link para aquele produto especifico
+  4. Copie o link gerado e cole no campo "Link de Pagamento" do admin
+
+  Como usar o WhatsApp como link:
+  O link fica assim: https://wa.me/5511999999999
+  Substitua o numero pelo seu (com DDI 55 + DDD + numero)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ COMO O CLIENTE EXPERIMENTA O SITE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. O cliente entra em https://storyclub.netlify.app
+  2. Ve os produtos em cards (cartoes) na pagina principal
+  3. Clica em cima de qualquer produto (nao no botao Comprar)
+  4. Abre a pagina de detalhes do produto com:
+     - Galeria de fotos (se tiver multiplas fotos, aparecem
+       miniaturas para clicar e ver cada uma)
+     - Descricao completa
+     - Preco e avaliacao
+     - Botao "Comprar Agora" que leva para o link de pagamento
+     - Sugestoes de outros produtos da mesma categoria
+  5. O cliente clica em "Comprar Agora" e e levado para
+     onde voce configurou o link de pagamento
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ONDE VER AS VENDAS E O DINHEIRO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Depende de onde voce configurou o link de pagamento:
+
+  Se usar MercadoPago:
+  https://www.mercadopago.com.br → Atividades
+
+  La voce ve:
+  - Pagamentos recebidos
+  - Saldo disponivel para saque
+  - Historico de transacoes
+
+  Se usar outro servico, veja nele mesmo.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ CONTA DOS CLIENTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Os clientes podem criar uma conta no site em:
+  https://storyclub.netlify.app/conta.html
+
+  Eles se cadastram com nome, e-mail e senha.
+  Isso e separado da sua senha de admin —
+  eles nao tem acesso ao painel de produtos.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ SUAS SENHAS (GUARDE BEM)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Senha do painel admin:
+    Veja o arquivo: SENHA_ADMIN_TOKEN.txt (na area de trabalho)
+
+  Senhas dos servicos (e-mail: alvaristowilliam@gmail.com):
+    GitHub:      https://github.com
+    Netlify:     https://netlify.com  (login com GitHub)
+    Render:      https://render.com   (login com GitHub)
+    MongoDB:     https://cloud.mongodb.com
+    Cloudinary:  https://cloudinary.com
+    MercadoPago: https://mercadopago.com.br
+
+  IMPORTANTE: Nao compartilhe a senha do painel admin com ninguem.
+  Quem tiver essa senha pode adicionar, editar e remover produtos.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ O SITE NAO CUSTA NADA? (planos gratuitos)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Por enquanto tudo esta no plano gratuito:
+  - Site (Netlify):     gratis para sempre no plano basico
+  - Servidor (Render):  gratis, mas pode demorar 20-40 segundos
+                        para carregar apos ficar 15 min sem visitas
+                        (uma tela de "carregando" aparece automaticamente)
+  - Banco de dados (MongoDB): gratis ate 512MB de dados
+                              (suficiente para mais de 100.000 produtos)
+  - Imagens (Cloudinary):     gratis ate 25GB de fotos
+  - Pagamentos: depende do servico que voce usar por produto
+
+  Se o site crescer e precisar de mais velocidade,
+  o servidor pode ser migrado para o plano pago do Render ($7/mes).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ QUANTO DO BANCO DE DADOS ESTOU USANDO?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  1. Acesse: https://cloud.mongodb.com
+  2. Clique no cluster "storeclubshop"
+  3. Aba "Collections" → ve o tamanho de cada colecao
+  4. Aba "Metrics" → grafico de uso em tempo real
+
+  O limite do plano gratuito e 512MB.
+  Com produtos normais, voce dificilmente vai chegar perto disso.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ALGO DEU ERRADO? O QUE FAZER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  O site abriu mas os produtos nao aparecem:
+    → Aguarde 40 segundos e recarregue a pagina (F5)
+    → O servidor pode estar "acordando" apos um periodo sem uso
+
+  Nao consigo entrar no painel admin:
+    → Confira a senha no arquivo SENHA_ADMIN_TOKEN.txt
+
+  O botao "Comprar Agora" nao faz nada:
+    → O produto nao tem link de pagamento. Edite e adicione o link.
+
+  Foto do produto nao aparece:
+    → A foto pode ter dado erro no upload. Edite o produto e
+      tente fazer o upload novamente.
+
+  Qualquer outro problema:
+    → Entre em contato com quem desenvolveu o site
+
+================================================================
+  Site:   https://storyclub.netlify.app
+  Admin:  https://storyclub.netlify.app/admin.html
+  Vendas: depende do seu servico de pagamento
+================================================================
