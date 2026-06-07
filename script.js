@@ -10,12 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Overlay "servidor acordando" ──
 const MENSAGENS = [
-  'Acordando o servidor... ☕',
-  'Buscando os melhores produtos... 🔍',
-  'Preparando as ofertas do dia... 🔥',
-  'Quase lá, aguenta aí... ⚡',
-  'Separando os itens mais virais... 📦',
-  'Só mais um instante... 🛒',
+  'Carregando os produtos... 🛒',
+  'Buscando as melhores ofertas... 🔍',
+  'Separando os itens mais virais... 🔥',
+  'Preparando tudo pra você... ✨',
+  'Quase lá... ⚡',
+  'Só mais um instante... 📦',
 ];
 let _overlayTimer = null, _msgTimer = null, _fillTimer = null, _msgIdx = 0;
 
