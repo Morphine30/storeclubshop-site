@@ -16,6 +16,63 @@
 </head>
 <body>
 
+<!-- OVERLAY: servidor adormecido (Render free tier) -->
+<div id="serverOverlay" style="display:none;">
+  <div id="serverBox">
+    <img src="logo.png" alt="Logo" id="overlayLogo">
+    <div id="overlayTitle">Story Club Shop</div>
+    <div id="overlayMsg">Acordando o servidor... ☕</div>
+    <div id="overlayBar"><div id="overlayFill"></div></div>
+    <div id="overlayHint">O servidor fica em modo de espera após inatividade.<br>Costuma levar <strong>20–40 segundos</strong> para acordar.</div>
+  </div>
+</div>
+
+<style>
+  #serverOverlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeInOverlay .3s ease;
+  }
+  @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+  #serverBox {
+    text-align: center; padding: 48px 40px;
+    background: #111; border: 1px solid #222; border-radius: 20px;
+    max-width: 360px; width: 90%;
+  }
+  #overlayLogo {
+    width: 72px; height: 72px; border-radius: 50%; object-fit: cover;
+    margin-bottom: 16px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,106,.5); }
+    50%       { box-shadow: 0 0 0 12px rgba(0,255,106,0); }
+  }
+  #overlayTitle {
+    font-family: 'Bebas Neue', cursive; font-size: 28px;
+    letter-spacing: 2px; color: #fff; margin-bottom: 20px;
+  }
+  #overlayMsg {
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+    font-size: 17px; color: #00ff6a; margin-bottom: 20px;
+    min-height: 26px; transition: opacity .4s;
+  }
+  #overlayBar {
+    background: #1e1e1e; border-radius: 99px;
+    height: 6px; overflow: hidden; margin-bottom: 20px;
+  }
+  #overlayFill {
+    height: 100%; background: linear-gradient(90deg, #00ff6a, #00c44f);
+    border-radius: 99px; width: 0%;
+    transition: width .8s ease;
+  }
+  #overlayHint {
+    font-size: 12px; color: #555; line-height: 1.6;
+  }
+  #overlayHint strong { color: #888; }
+</style>
+
 <!-- TOPBAR -->
 <div class="topbar">
   <span>🔥 Frete Grátis acima de R$99</span>

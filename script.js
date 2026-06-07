@@ -8,14 +8,65 @@ document.addEventListener('DOMContentLoaded', () => {
   initBusca();
 });
 
+// ── Overlay "servidor acordando" ──
+const MENSAGENS = [
+  'Acordando o servidor... ☕',
+  'Buscando os melhores produtos... 🔍',
+  'Preparando as ofertas do dia... 🔥',
+  'Quase lá, aguenta aí... ⚡',
+  'Separando os itens mais virais... 📦',
+  'Só mais um instante... 🛒',
+];
+let _overlayTimer = null, _msgTimer = null, _fillTimer = null, _msgIdx = 0;
+
+function mostrarOverlay() {
+  const el = document.getElementById('serverOverlay');
+  if (!el) return;
+  el.style.display = 'flex';
+  _msgIdx = 0;
+  document.getElementById('overlayMsg').textContent = MENSAGENS[0];
+
+  let pct = 5;
+  document.getElementById('overlayFill').style.width = pct + '%';
+
+  _fillTimer = setInterval(() => {
+    pct = Math.min(pct + (Math.random() * 4), 92);
+    document.getElementById('overlayFill').style.width = pct + '%';
+  }, 900);
+
+  _msgTimer = setInterval(() => {
+    _msgIdx = (_msgIdx + 1) % MENSAGENS.length;
+    const msgEl = document.getElementById('overlayMsg');
+    msgEl.style.opacity = '0';
+    setTimeout(() => {
+      msgEl.textContent = MENSAGENS[_msgIdx];
+      msgEl.style.opacity = '1';
+    }, 400);
+  }, 3500);
+}
+
+function esconderOverlay() {
+  clearInterval(_fillTimer);
+  clearInterval(_msgTimer);
+  const el = document.getElementById('serverOverlay');
+  if (!el) return;
+  document.getElementById('overlayFill').style.width = '100%';
+  setTimeout(() => { el.style.display = 'none'; }, 500);
+}
+
 // ── Carregar produtos da API ──
 async function carregarProdutos() {
+  _overlayTimer = setTimeout(mostrarOverlay, 1500);
   try {
     const res = await fetch(`${API_URL}/api/produtos`);
+    clearTimeout(_overlayTimer);
+    esconderOverlay();
     if (!res.ok) throw new Error();
     produtos = await res.json();
     renderizarGrades();
   } catch {
+    clearTimeout(_overlayTimer);
+    esconderOverlay();
     bindBotoesComprar();
     initScrollReveal();
   }
