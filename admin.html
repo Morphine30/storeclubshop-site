@@ -665,32 +665,51 @@
     imagemRemovida = true;
   }
 
+  function renderExtrasPreview() {
+    const wrap     = document.getElementById('extrasPreviewWrap');
+    const prev     = document.getElementById('extrasPreview');
+    const contador = document.getElementById('extrasContador');
+    prev.innerHTML = '';
+    extrasFiles.forEach((f, idx) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const wrap2 = document.createElement('div');
+        wrap2.style.cssText = 'position:relative;width:64px;height:64px;flex-shrink:0;';
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);display:block;';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '✕';
+        btn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ff4444;border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
+        btn.onclick = () => removerExtraFoto(idx);
+        wrap2.appendChild(img);
+        wrap2.appendChild(btn);
+        prev.appendChild(wrap2);
+      };
+      reader.readAsDataURL(f);
+    });
+    if (contador) contador.textContent = `${extrasFiles.length}/4 foto${extrasFiles.length !== 1 ? 's' : ''} selecionada${extrasFiles.length !== 1 ? 's' : ''}`;
+    wrap.style.display = extrasFiles.length ? 'block' : 'none';
+  }
+
+  function removerExtraFoto(idx) {
+    extrasFiles.splice(idx, 1);
+    const dt = new DataTransfer();
+    extrasFiles.forEach(f => dt.items.add(f));
+    document.getElementById('imgExtrasInput').files = dt.files;
+    renderExtrasPreview();
+  }
+
   function previewExtras(input) {
     if (!input.files || !input.files.length) return;
-    const novos = Array.from(input.files);
-    for (const f of novos) {
+    for (const f of Array.from(input.files)) {
       if (extrasFiles.length < 4) extrasFiles.push(f);
     }
     const dt = new DataTransfer();
     extrasFiles.forEach(f => dt.items.add(f));
     input.files = dt.files;
-
-    const wrap = document.getElementById('extrasPreviewWrap');
-    const prev = document.getElementById('extrasPreview');
-    const contador = document.getElementById('extrasContador');
-    prev.innerHTML = '';
-    extrasFiles.forEach(f => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);';
-        prev.appendChild(img);
-      };
-      reader.readAsDataURL(f);
-    });
-    if (contador) contador.textContent = `${extrasFiles.length}/4 foto${extrasFiles.length !== 1 ? 's' : ''} selecionada${extrasFiles.length !== 1 ? 's' : ''}`;
-    wrap.style.display = 'block';
+    renderExtrasPreview();
   }
 
   function limparExtras() {
