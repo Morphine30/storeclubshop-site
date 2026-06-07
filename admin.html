@@ -361,8 +361,12 @@
           <div class="upload-hint">Até 4 fotos • JPG, PNG, WEBP — máx. 5 MB cada</div>
         </div>
         <div id="extrasPreviewWrap" style="display:none;margin-top:8px;">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Novas fotos selecionadas:</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="font-size:11px;color:var(--muted);">Novas fotos selecionadas:</div>
+            <div id="extrasContador" style="font-size:11px;color:var(--verde);font-family:'Barlow Condensed',sans-serif;font-weight:700;"></div>
+          </div>
           <div id="extrasPreview" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:6px;">Clique novamente para adicionar mais fotos (até 4 no total)</div>
           <button type="button" onclick="limparExtras()" style="margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">✕ Limpar seleção</button>
         </div>
       </div>
@@ -441,6 +445,7 @@
   let produtos     = [];
   let editandoId   = null;
   let imagemRemovida = false;
+  let extrasFiles  = [];
 
   // ── Auth ──
   function getToken() { return sessionStorage.getItem(TOKEN_KEY) || ''; }
@@ -662,11 +667,19 @@
 
   function previewExtras(input) {
     if (!input.files || !input.files.length) return;
-    const files = Array.from(input.files).slice(0, 4);
-    const wrap  = document.getElementById('extrasPreviewWrap');
-    const prev  = document.getElementById('extrasPreview');
+    const novos = Array.from(input.files);
+    for (const f of novos) {
+      if (extrasFiles.length < 4) extrasFiles.push(f);
+    }
+    const dt = new DataTransfer();
+    extrasFiles.forEach(f => dt.items.add(f));
+    input.files = dt.files;
+
+    const wrap = document.getElementById('extrasPreviewWrap');
+    const prev = document.getElementById('extrasPreview');
+    const contador = document.getElementById('extrasContador');
     prev.innerHTML = '';
-    files.forEach(f => {
+    extrasFiles.forEach(f => {
       const reader = new FileReader();
       reader.onload = e => {
         const img = document.createElement('img');
@@ -676,13 +689,17 @@
       };
       reader.readAsDataURL(f);
     });
+    if (contador) contador.textContent = `${extrasFiles.length}/4 foto${extrasFiles.length !== 1 ? 's' : ''} selecionada${extrasFiles.length !== 1 ? 's' : ''}`;
     wrap.style.display = 'block';
   }
 
   function limparExtras() {
+    extrasFiles = [];
     document.getElementById('imgExtrasInput').value = '';
     document.getElementById('extrasPreviewWrap').style.display = 'none';
     document.getElementById('extrasPreview').innerHTML = '';
+    const contador = document.getElementById('extrasContador');
+    if (contador) contador.textContent = '';
   }
 
   function toast(msg, tipo = 'ok') {
