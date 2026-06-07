@@ -446,6 +446,7 @@
   let editandoId   = null;
   let imagemRemovida = false;
   let extrasFiles  = [];
+  let extrasExistentesAManter = [];
 
   // ── Auth ──
   function getToken() { return sessionStorage.getItem(TOKEN_KEY) || ''; }
@@ -578,17 +579,9 @@
       document.getElementById('uploadArea').style.display     = '';
     }
 
-    const extWrap = document.getElementById('extrasExistentesWrap');
-    const extDiv  = document.getElementById('extrasExistentes');
+    extrasExistentesAManter = p.imagens ? [...p.imagens] : [];
     limparExtras();
-    if (p.imagens?.length) {
-      extDiv.innerHTML = p.imagens.map(url =>
-        `<img src="${url.replace(/"/g,'%22')}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">`
-      ).join('');
-      extWrap.style.display = 'block';
-    } else {
-      extWrap.style.display = 'none';
-    }
+    renderExtrasExistentes();
 
     document.getElementById('formPanel').scrollIntoView({ behavior: 'smooth' });
   }
@@ -615,6 +608,10 @@
     }
     if (!document.getElementById('imgExtrasInput').files.length) {
       formData.delete('imagens');
+    }
+    if (editandoId) {
+      formData.append('imagensManterFlag', '1');
+      extrasExistentesAManter.forEach(url => formData.append('imagensManterUrls', url));
     }
 
     const url      = editandoId ? `${API}/api/produtos/${editandoId}` : `${API}/api/produtos`;
@@ -643,7 +640,8 @@
     document.getElementById('produtoForm').reset();
     document.getElementById('imgPreviewWrap').style.display = 'none';
     document.getElementById('uploadArea').style.display     = '';
-    document.getElementById('extrasExistentesWrap').style.display = 'none';
+    extrasExistentesAManter = [];
+    renderExtrasExistentes();
     limparExtras();
   }
 
@@ -701,10 +699,32 @@
     renderExtrasPreview();
   }
 
+  function renderExtrasExistentes() {
+    const extWrap = document.getElementById('extrasExistentesWrap');
+    const extDiv  = document.getElementById('extrasExistentes');
+    if (!extrasExistentesAManter.length) { extWrap.style.display = 'none'; return; }
+    extDiv.innerHTML = '';
+    extrasExistentesAManter.forEach(url => {
+      const w = document.createElement('div');
+      w.style.cssText = 'position:relative;width:64px;height:64px;flex-shrink:0;';
+      const img = document.createElement('img');
+      img.src = url.replace(/"/g, '%22');
+      img.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border);display:block;';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = '✕';
+      btn.style.cssText = 'position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ff4444;border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
+      btn.onclick = () => { extrasExistentesAManter = extrasExistentesAManter.filter(u => u !== url); renderExtrasExistentes(); };
+      w.appendChild(img); w.appendChild(btn); extDiv.appendChild(w);
+    });
+    extWrap.style.display = 'block';
+  }
+
   function previewExtras(input) {
     if (!input.files || !input.files.length) return;
+    const vagasRestantes = 4 - extrasExistentesAManter.length;
     for (const f of Array.from(input.files)) {
-      if (extrasFiles.length < 4) extrasFiles.push(f);
+      if (extrasFiles.length < vagasRestantes) extrasFiles.push(f);
     }
     const dt = new DataTransfer();
     extrasFiles.forEach(f => dt.items.add(f));
