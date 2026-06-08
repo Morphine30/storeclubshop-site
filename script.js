@@ -145,8 +145,20 @@ function renderHero(destaques) {
   const wrap = document.getElementById('heroVisual');
   if (!wrap || !Array.isArray(destaques) || !destaques.length) return;
 
-  const cards = [...destaques].sort((a, b) => a.slot - b.slot).map(d => {
-    const p = produtos.find(x => x.id === d.produtoId);
+  // garante os 3 slots em ordem
+  const slots = [0, 1, 2].map(slot =>
+    destaques.find(d => d.slot === slot) || { slot, produtoId: null, tag: '' });
+
+  // resolve o produto escolhido de cada slot
+  const resolvidos = slots.map(d => ({ d, p: produtos.find(x => x.id === d.produtoId) || null }));
+
+  // preenche slots vazios com produtos ainda não usados (hero sempre com 3 cards)
+  const usados = new Set(resolvidos.filter(r => r.p).map(r => r.p.id));
+  const restantes = produtos.filter(p => !usados.has(p.id));
+  let ri = 0;
+  resolvidos.forEach(r => { if (!r.p && restantes[ri]) r.p = restantes[ri++]; });
+
+  const cards = resolvidos.map(({ d, p }) => {
     if (!p) return '';
     const big   = d.slot === 0 ? ' big' : '';
     const img   = p.imagem
@@ -157,7 +169,6 @@ function renderHero(destaques) {
     return `<div class="hero-card${big}" onclick="window.location.href='produto.html?id=${p.id}'" style="cursor:pointer;">${img}${tag}${preco}</div>`;
   });
 
-  // só substitui se algum slot tiver produto válido
   if (cards.some(c => c)) wrap.innerHTML = cards.join('');
 }
 
