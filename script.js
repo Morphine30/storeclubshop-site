@@ -149,16 +149,17 @@ function initScrollReveal() {
 
 // ── Nav ativo + filtro por categoria ──
 function initNavAtivo() {
-  document.querySelectorAll('nav a[data-cat]').forEach(link => {
-    link.addEventListener('click', () => {
-      document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-      filtrarCategoria(link.dataset.cat);
-    });
+  // barra superior + cards da seção "Nossas Categorias"
+  document.querySelectorAll('nav a[data-cat], .cat-card[data-cat]').forEach(el => {
+    el.addEventListener('click', () => filtrarCategoria(el.dataset.cat));
   });
 }
 
 function filtrarCategoria(cat) {
+  // sincroniza o destaque no menu de cima
+  document.querySelectorAll('nav a').forEach(l =>
+    l.classList.toggle('active', l.dataset.cat === cat));
+
   // limpa a busca ao trocar de categoria
   const input = document.querySelector('.search-bar input');
   if (input) input.value = '';
