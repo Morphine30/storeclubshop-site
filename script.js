@@ -69,6 +69,7 @@ async function carregarProdutos() {
     produtos = await res.json();
     renderizarGrades();
     carregarDestaques();
+    carregarCategoriasImagens();
   } catch {
     clearTimeout(_overlayTimer);
     esconderOverlay();
@@ -170,6 +171,23 @@ function renderHero(destaques) {
   });
 
   if (cards.some(c => c)) wrap.innerHTML = cards.join('');
+}
+
+// ── Fotos das categorias (configuráveis no admin) ──
+async function carregarCategoriasImagens() {
+  try {
+    const res = await fetch(`${API_URL}/api/categorias`);
+    if (!res.ok) return;
+    const cats = await res.json();
+    cats.forEach(c => {
+      if (!c.imagem) return;
+      const sel = `.cat-card[data-cat="${c.nome.replace(/"/g, '\\"')}"] .cat-icon`;
+      document.querySelectorAll(sel).forEach(icon => {
+        icon.innerHTML = `<img src="${c.imagem.replace(/"/g, '%22')}" alt="${escHtml(c.nome)}">`;
+        icon.classList.add('cat-icon-img');
+      });
+    });
+  } catch { /* mantém o emoji se falhar */ }
 }
 
 function bindBotoesComprar() {

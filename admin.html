@@ -244,6 +244,19 @@
   </div>
 </div>
 
+<!-- ── FOTOS DAS CATEGORIAS ── -->
+<div class="panel" id="categoriasPanel" style="max-width:1280px;margin:0 auto 24px;">
+  <div class="panel-header">
+    <span class="panel-title">📸 Fotos das Categorias</span>
+  </div>
+  <div style="padding:20px 24px;">
+    <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:16px;">
+      Suba uma foto para cada categoria (substitui o emoji nas cards da home). Imagem <strong>quadrada</strong> fica melhor. JPG, PNG, WEBP — máx. 5 MB.
+    </p>
+    <div id="categoriasGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;"></div>
+  </div>
+</div>
+
 <div class="admin-layout">
 
   <!-- ── LISTA DE PRODUTOS ── -->
@@ -520,9 +533,84 @@
       renderLista();
       renderDestaquesUI();
       carregarDestaques();
+      carregarCategoriasAdmin();
     } catch {
       document.getElementById('productList').innerHTML =
         '<div class="list-empty">⚠️ Backend offline. Inicie a API com <strong>npm run dev</strong>.</div>';
+    }
+  }
+
+  // ── Fotos das Categorias ──
+  // Categorias que têm card na home (index.html)
+  const CATEGORIAS_HOME = ['Coleção Copa', 'Beleza', 'Bem-Estar', 'Eletrodomésticos', 'Eletrônicos'];
+  let categoriasImgs = {};
+
+  async function carregarCategoriasAdmin() {
+    try {
+      const res = await fetch(`${API}/api/categorias`);
+      if (res.ok) {
+        const cats = await res.json();
+        categoriasImgs = {};
+        cats.forEach(c => { categoriasImgs[c.nome] = c.imagem; });
+      }
+    } catch { /* sem config ainda */ }
+    renderCategoriasUI();
+  }
+
+  function renderCategoriasUI() {
+    const grid = document.getElementById('categoriasGrid');
+    if (!grid) return;
+    grid.innerHTML = CATEGORIAS_HOME.map(nome => {
+      const img = categoriasImgs[nome];
+      const nomeAttr = nome.replace(/'/g, "\\'");
+      const preview = img
+        ? `<img src="${img.replace(/"/g, '%22')}" style="width:100%;height:110px;object-fit:cover;border-radius:8px;display:block;">`
+        : `<div style="height:110px;display:flex;align-items:center;justify-content:center;background:var(--dark3);border-radius:8px;color:var(--muted);font-size:12px;">sem foto</div>`;
+      const btnRemover = img
+        ? `<button type="button" onclick="removerCategoriaImagem('${nomeAttr}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px;font-size:11px;cursor:pointer;">✕ Remover foto</button>`
+        : '';
+      return `
+        <div style="border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.3px;">${esc(nome)}</div>
+          ${preview}
+          <label style="background:var(--verde);color:#000;border-radius:6px;padding:7px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;text-transform:uppercase;letter-spacing:.3px;">
+            📤 ${img ? 'Trocar' : 'Subir'} foto
+            <input type="file" accept="image/*" style="display:none" onchange="uploadCategoriaImagem('${nomeAttr}', this)">
+          </label>
+          ${btnRemover}
+        </div>`;
+    }).join('');
+  }
+
+  async function uploadCategoriaImagem(nome, input) {
+    if (!input.files || !input.files[0]) return;
+    const fd = new FormData();
+    fd.append('nome', nome);
+    fd.append('imagem', input.files[0]);
+    try {
+      const res = await fetch(`${API}/api/categorias`, { method: 'PUT', headers: authHeaders(), body: fd });
+      if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); return; }
+      if (!res.ok) { const e = await res.json(); throw new Error(e.erro || 'Erro ao enviar'); }
+      const salvo = await res.json();
+      categoriasImgs[nome] = salvo.imagem;
+      renderCategoriasUI();
+      toast('✅ Foto da categoria atualizada!');
+    } catch (err) {
+      toast('❌ ' + err.message, 'erro');
+    }
+  }
+
+  async function removerCategoriaImagem(nome) {
+    if (!confirm(`Remover a foto de "${nome}"? Volta a mostrar o emoji.`)) return;
+    try {
+      const res = await fetch(`${API}/api/categorias/${encodeURIComponent(nome)}`, { method: 'DELETE', headers: authHeaders() });
+      if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); return; }
+      if (!res.ok) throw new Error('Erro ao remover');
+      categoriasImgs[nome] = null;
+      renderCategoriasUI();
+      toast('Foto removida.');
+    } catch (err) {
+      toast('❌ ' + err.message, 'erro');
     }
   }
 

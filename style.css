@@ -499,6 +499,13 @@
   .cat-card:hover { border-color: var(--verde); transform: translateY(-4px); }
   .cat-card:hover::before { opacity: 1; }
   .cat-icon { font-size: 36px; margin-bottom: 10px; display: block; }
+  .cat-icon.cat-icon-img { font-size: 0; }
+  .cat-icon img {
+    width: 60px; height: 60px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: inline-block;
+  }
   .cat-name {
     font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700;

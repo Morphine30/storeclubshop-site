@@ -103,6 +103,7 @@ Sem isso, a loja abre mas **não carrega os produtos** (bloqueio de CORS).
 - **Hero editável pelo admin:** no painel admin há a seção "⭐ Destaques do Hero" — escolha quais 3 produtos aparecem no banner inicial + a etiqueta de cada um (o 1º é o card grande, mostra o preço).
   - ⚠️ Exige o **backend deployado** (rota `/api/destaques`). Enquanto o backend não estiver atualizado, a home mantém os 3 cards fixos como fallback (não quebra).
   - Não precisa de nova variável de ambiente. A coleção `destaques` é criada sozinha no MongoDB no primeiro salvamento.
+- **Fotos das categorias editáveis pelo admin:** seção "📸 Fotos das Categorias" no painel — suba uma foto por categoria (substitui o emoji nas cards da home). Usa Cloudinary (pasta `storeclubshop/categorias`). Rota `/api/categorias`. Sem foto = mantém o emoji. Exige backend deployado.
 - **Filtro/ordenação na home:** menu "Ordenar por" (relevância, menor/maior preço, mais recentes, melhor avaliados) + slider de preço mín–máx. Tudo frontend.
 - **Selos de confiança** na página do produto (abaixo do botão Comprar).
 - **CORS multi-URL:** `FRONTEND_URL` no Render aceita várias URLs separadas por vírgula.
