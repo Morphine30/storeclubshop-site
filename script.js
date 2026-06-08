@@ -80,6 +80,7 @@ function renderizarGrades() {
   if (grids[0]) grids[0].innerHTML = maisVendidos.map(renderCard).join('');
   if (grids[1]) grids[1].innerHTML = novidades.map(renderCard).join('');
 
+  atualizarContagemCategorias();
   initScrollReveal();
 }
 
@@ -185,6 +186,29 @@ function filtrarCategoria(cat) {
   const total = [...document.querySelectorAll('.product-card')]
     .filter(c => c.style.display !== 'none').length;
   mostrarAvisoVazio(total === 0, cat);
+}
+
+// ── Contagem real de produtos por categoria ──
+function atualizarContagemCategorias() {
+  const contagem = {};
+  produtos.forEach(p => {
+    if (p.categoria) contagem[p.categoria] = (contagem[p.categoria] || 0) + 1;
+  });
+
+  // cards da seção "Nossas Categorias"
+  document.querySelectorAll('.cat-card[data-cat]').forEach(card => {
+    const n = contagem[card.dataset.cat] || 0;
+    const el = card.querySelector('.cat-count');
+    if (el) el.textContent = `${n} produto${n === 1 ? '' : 's'}`;
+    card.style.display = n === 0 ? 'none' : '';   // esconde categoria sem produto
+  });
+
+  // menu superior: esconde categorias reais sem produto (mantém Todos/Ofertas)
+  document.querySelectorAll('nav a[data-cat]').forEach(link => {
+    const cat = link.dataset.cat;
+    if (cat === 'todos' || cat === 'ofertas') return;
+    link.style.display = (contagem[cat] || 0) === 0 ? 'none' : '';
+  });
 }
 
 function mostrarAvisoVazio(vazio, cat) {
