@@ -99,7 +99,7 @@ function renderCard(p) {
     : `href="#" onclick="return false"`;
 
   return `
-    <div class="product-card" onclick="window.location.href='produto.html?id=${p.id}'" style="cursor:pointer;">
+    <div class="product-card" data-cat="${escHtml(p.categoria || '')}" data-oferta="${p.precoAntigo ? '1' : '0'}" onclick="window.location.href='produto.html?id=${p.id}'" style="cursor:pointer;">
       <div class="product-img">
         ${imgHtml}
         ${p.badge    ? `<span class="badge-hot">${escHtml(p.badge)}</span>`    : ''}
@@ -147,14 +147,56 @@ function initScrollReveal() {
   });
 }
 
-// ── Nav ativo ──
+// ── Nav ativo + filtro por categoria ──
 function initNavAtivo() {
-  document.querySelectorAll('nav a').forEach(link => {
+  document.querySelectorAll('nav a[data-cat]').forEach(link => {
     link.addEventListener('click', () => {
       document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
       link.classList.add('active');
+      filtrarCategoria(link.dataset.cat);
     });
   });
+}
+
+function filtrarCategoria(cat) {
+  // limpa a busca ao trocar de categoria
+  const input = document.querySelector('.search-bar input');
+  if (input) input.value = '';
+
+  document.querySelectorAll('.product-card').forEach(card => {
+    let mostrar;
+    if (cat === 'todos')        mostrar = true;
+    else if (cat === 'ofertas') mostrar = card.dataset.oferta === '1';
+    else                        mostrar = card.dataset.cat === cat;
+    card.style.display = mostrar ? '' : 'none';
+  });
+
+  // esconde seções (Mais Vendidos / Novidades) que ficaram sem produto visível
+  document.querySelectorAll('.products-grid').forEach(grid => {
+    const secao = grid.closest('.section');
+    if (!secao) return;
+    const algumVisivel = [...grid.querySelectorAll('.product-card')]
+      .some(c => c.style.display !== 'none');
+    secao.style.display = algumVisivel ? '' : 'none';
+  });
+
+  // aviso quando nenhuma categoria corresponde
+  const total = [...document.querySelectorAll('.product-card')]
+    .filter(c => c.style.display !== 'none').length;
+  mostrarAvisoVazio(total === 0, cat);
+}
+
+function mostrarAvisoVazio(vazio, cat) {
+  let aviso = document.getElementById('semProdutos');
+  if (!aviso) {
+    aviso = document.createElement('div');
+    aviso.id = 'semProdutos';
+    aviso.style.cssText = 'text-align:center;padding:60px 20px;color:var(--muted);font-size:16px;';
+    const ref = document.getElementById('produtos');
+    if (ref) ref.parentNode.insertBefore(aviso, ref);
+  }
+  aviso.textContent = `Nenhum produto na categoria "${cat}" ainda. 😉`;
+  aviso.style.display = vazio ? 'block' : 'none';
 }
 
 // ── Smooth scroll ──
@@ -180,11 +222,26 @@ function initBusca() {
 
   function filtrar() {
     const term = input.value.toLowerCase().trim();
+    // ao buscar, volta o menu para "Todos os Produtos"
+    if (term) {
+      document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
+      document.querySelector('nav a[data-cat="todos"]')?.classList.add('active');
+    }
     document.querySelectorAll('.product-card').forEach(card => {
       const nome = card.querySelector('.product-name')?.textContent.toLowerCase() || '';
       const desc = card.querySelector('.product-desc')?.textContent.toLowerCase() || '';
       card.style.display = (!term || nome.includes(term) || desc.includes(term)) ? '' : 'none';
     });
+    // reexibe/esconde seções conforme o que sobrou visível
+    document.querySelectorAll('.products-grid').forEach(grid => {
+      const secao = grid.closest('.section');
+      if (!secao) return;
+      const algumVisivel = [...grid.querySelectorAll('.product-card')]
+        .some(c => c.style.display !== 'none');
+      secao.style.display = algumVisivel ? '' : 'none';
+    });
+    const aviso = document.getElementById('semProdutos');
+    if (aviso) aviso.style.display = 'none';
   }
 
   btn?.addEventListener('click', filtrar);

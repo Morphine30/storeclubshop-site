@@ -336,7 +336,14 @@
     transition: transform .3s;
   }
   .hero-card:hover { transform: scale(1.04); }
+  .hero-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 18px;
+  }
   .hero-card.big { grid-column: 1 / -1; aspect-ratio: 2/1; font-size: 72px; }
+  .hero-card.big img { padding: 24px; }
   .hero-card .tag {
     position: absolute; bottom: 10px; left: 10px;
     background: var(--verde);
