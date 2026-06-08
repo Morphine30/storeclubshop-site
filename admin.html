@@ -230,6 +230,20 @@
   </div>
 </header>
 
+<!-- ── DESTAQUES DO HERO ── -->
+<div class="panel" id="destaquesPanel" style="max-width:1280px;margin:0 auto 24px;">
+  <div class="panel-header">
+    <span class="panel-title">⭐ Destaques do Hero (banner inicial)</span>
+  </div>
+  <div style="padding:20px 24px;display:flex;flex-direction:column;gap:16px;">
+    <p style="font-size:12px;color:var(--muted);line-height:1.5;">
+      Escolha quais 3 produtos aparecem no banner principal da home. O <strong>1º é o card grande</strong> (mostra o preço). A etiqueta é o selo verde (ex: Mais Vendido, Novo, -40%).
+    </p>
+    <div id="destaquesSlots" style="display:flex;flex-direction:column;gap:14px;"></div>
+    <button type="button" class="btn-save" id="btnSalvarDestaques" onclick="salvarDestaques()" style="align-self:flex-start;">💾 Salvar Destaques</button>
+  </div>
+</div>
+
 <div class="admin-layout">
 
   <!-- ── LISTA DE PRODUTOS ── -->
@@ -504,9 +518,68 @@
       const res = await fetch(`${API}/api/produtos`);
       produtos = await res.json();
       renderLista();
+      renderDestaquesUI();
+      carregarDestaques();
     } catch {
       document.getElementById('productList').innerHTML =
         '<div class="list-empty">⚠️ Backend offline. Inicie a API com <strong>npm run dev</strong>.</div>';
+    }
+  }
+
+  // ── Destaques do Hero ──
+  const NOMES_SLOT = ['Card grande (1º)', 'Card 2', 'Card 3'];
+
+  function renderDestaquesUI() {
+    const cont = document.getElementById('destaquesSlots');
+    if (!cont) return;
+    const opcoes = ['<option value="">— nenhum —</option>']
+      .concat(produtos.map(p =>
+        `<option value="${p.id}">${esc(p.nome)} (R$${p.preco.toFixed(2).replace('.', ',')})</option>`))
+      .join('');
+    cont.innerHTML = [0, 1, 2].map(slot => `
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;align-items:end;border:1px solid var(--border);border-radius:8px;padding:12px;">
+        <div class="form-group">
+          <label>${NOMES_SLOT[slot]} — Produto</label>
+          <select id="destaqueProduto${slot}">${opcoes}</select>
+        </div>
+        <div class="form-group">
+          <label>Etiqueta</label>
+          <input id="destaqueTag${slot}" placeholder="Ex: Mais Vendido" maxlength="30">
+        </div>
+      </div>`).join('');
+  }
+
+  async function carregarDestaques() {
+    try {
+      const res = await fetch(`${API}/api/destaques`);
+      if (!res.ok) return;
+      const destaques = await res.json();
+      destaques.forEach(d => {
+        const sel = document.getElementById(`destaqueProduto${d.slot}`);
+        const tag = document.getElementById(`destaqueTag${d.slot}`);
+        if (sel && d.produtoId != null) sel.value = String(d.produtoId);
+        if (tag) tag.value = d.tag || '';
+      });
+    } catch { /* sem config ainda */ }
+  }
+
+  async function salvarDestaques() {
+    const itens = [0, 1, 2].map(slot => ({
+      slot,
+      produtoId: document.getElementById(`destaqueProduto${slot}`).value || null,
+      tag: document.getElementById(`destaqueTag${slot}`).value.trim()
+    }));
+    try {
+      const res = await fetch(`${API}/api/destaques`, {
+        method: 'PUT',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(itens)
+      });
+      if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); return; }
+      if (!res.ok) { const e = await res.json(); throw new Error(e.erro || 'Erro ao salvar'); }
+      toast('✅ Destaques salvos!');
+    } catch (err) {
+      toast('❌ ' + err.message, 'erro');
     }
   }
 

@@ -1,11 +1,15 @@
 const API_URL = window.API_URL || 'http://localhost:3000';
 let produtos = [];
 
+// estado unificado de filtros (categoria + busca + preço + ordem)
+const filtros = { categoria: 'todos', busca: '', precoMin: 0, precoMax: Infinity, ordem: 'padrao' };
+
 document.addEventListener('DOMContentLoaded', () => {
   carregarProdutos();
   initNavAtivo();
   initStickyHeader();
   initBusca();
+  initOrdenacao();
 });
 
 // ── Overlay "servidor acordando" ──
@@ -64,6 +68,7 @@ async function carregarProdutos() {
     if (!res.ok) throw new Error();
     produtos = await res.json();
     renderizarGrades();
+    carregarDestaques();
   } catch {
     clearTimeout(_overlayTimer);
     esconderOverlay();
@@ -80,7 +85,14 @@ function renderizarGrades() {
   if (grids[0]) grids[0].innerHTML = maisVendidos.map(renderCard).join('');
   if (grids[1]) grids[1].innerHTML = novidades.map(renderCard).join('');
 
+  // guarda a posição original de cada card (usada na ordem "Relevância")
+  document.querySelectorAll('.products-grid').forEach(grid => {
+    [...grid.querySelectorAll('.product-card')].forEach((c, i) => c.dataset.pos = i);
+  });
+
   atualizarContagemCategorias();
+  configurarPrecoSlider();
+  aplicarFiltros();
   initScrollReveal();
 }
 
@@ -100,7 +112,7 @@ function renderCard(p) {
     : `href="#" onclick="return false"`;
 
   return `
-    <div class="product-card" data-cat="${escHtml(p.categoria || '')}" data-oferta="${p.precoAntigo ? '1' : '0'}" onclick="window.location.href='produto.html?id=${p.id}'" style="cursor:pointer;">
+    <div class="product-card" data-cat="${escHtml(p.categoria || '')}" data-oferta="${p.precoAntigo ? '1' : '0'}" data-preco="${p.preco}" data-aval="${p.avaliacoes || 0}" data-id="${p.id}" onclick="window.location.href='produto.html?id=${p.id}'" style="cursor:pointer;">
       <div class="product-img">
         ${imgHtml}
         ${p.badge    ? `<span class="badge-hot">${escHtml(p.badge)}</span>`    : ''}
@@ -117,6 +129,36 @@ function renderCard(p) {
         <a class="btn-buy" ${linkAttr} onclick="event.stopPropagation()">🛒 Comprar Agora</a>
       </div>
     </div>`;
+}
+
+// ── Destaques do hero (configuráveis no admin) ──
+async function carregarDestaques() {
+  try {
+    const res = await fetch(`${API_URL}/api/destaques`);
+    if (!res.ok) return;
+    const destaques = await res.json();
+    renderHero(destaques);
+  } catch { /* mantém o hero fixo do HTML se falhar */ }
+}
+
+function renderHero(destaques) {
+  const wrap = document.getElementById('heroVisual');
+  if (!wrap || !Array.isArray(destaques) || !destaques.length) return;
+
+  const cards = [...destaques].sort((a, b) => a.slot - b.slot).map(d => {
+    const p = produtos.find(x => x.id === d.produtoId);
+    if (!p) return '';
+    const big   = d.slot === 0 ? ' big' : '';
+    const img   = p.imagem
+      ? `<img src="${p.imagem.replace(/"/g, '%22')}" alt="${escHtml(p.nome)}">`
+      : `<div class="card-emoji">${escHtml(p.emoji || '📦')}</div>`;
+    const tag   = d.tag ? `<span class="tag">${escHtml(d.tag)}</span>` : '';
+    const preco = d.slot === 0 ? `<span class="price-tag">R$${Math.round(p.preco)}</span>` : '';
+    return `<div class="hero-card${big}" onclick="window.location.href='produto.html?id=${p.id}'" style="cursor:pointer;">${img}${tag}${preco}</div>`;
+  });
+
+  // só substitui se algum slot tiver produto válido
+  if (cards.some(c => c)) wrap.innerHTML = cards.join('');
 }
 
 function bindBotoesComprar() {
@@ -157,35 +199,107 @@ function initNavAtivo() {
 }
 
 function filtrarCategoria(cat) {
+  filtros.categoria = cat;
+  filtros.busca = '';
+  const input = document.querySelector('.search-bar input');
+  if (input) input.value = '';
   // sincroniza o destaque no menu de cima
   document.querySelectorAll('nav a').forEach(l =>
     l.classList.toggle('active', l.dataset.cat === cat));
+  aplicarFiltros();
+}
 
-  // limpa a busca ao trocar de categoria
-  const input = document.querySelector('.search-bar input');
-  if (input) input.value = '';
+// ── Aplica TODOS os filtros + ordenação de uma vez ──
+function aplicarFiltros() {
+  const term = filtros.busca.toLowerCase().trim();
 
-  document.querySelectorAll('.product-card').forEach(card => {
-    let mostrar;
-    if (cat === 'todos')        mostrar = true;
-    else if (cat === 'ofertas') mostrar = card.dataset.oferta === '1';
-    else                        mostrar = card.dataset.cat === cat;
-    card.style.display = mostrar ? '' : 'none';
-  });
-
-  // esconde seções (Mais Vendidos / Novidades) que ficaram sem produto visível
   document.querySelectorAll('.products-grid').forEach(grid => {
+    const cards = [...grid.querySelectorAll('.product-card')];
+
+    // 1) visibilidade: categoria + busca + faixa de preço
+    cards.forEach(card => {
+      const cat = filtros.categoria;
+      let okCat;
+      if (cat === 'todos')        okCat = true;
+      else if (cat === 'ofertas') okCat = card.dataset.oferta === '1';
+      else                        okCat = card.dataset.cat === cat;
+
+      const nome = card.querySelector('.product-name')?.textContent.toLowerCase() || '';
+      const desc = card.querySelector('.product-desc')?.textContent.toLowerCase() || '';
+      const okBusca = !term || nome.includes(term) || desc.includes(term);
+
+      const preco = parseFloat(card.dataset.preco) || 0;
+      const okPreco = preco >= filtros.precoMin && preco <= filtros.precoMax;
+
+      card.style.display = (okCat && okBusca && okPreco) ? '' : 'none';
+    });
+
+    // 2) ordenação (reordena os cards no DOM)
+    cards.sort((a, b) => {
+      switch (filtros.ordem) {
+        case 'menor-preco': return (+a.dataset.preco) - (+b.dataset.preco);
+        case 'maior-preco': return (+b.dataset.preco) - (+a.dataset.preco);
+        case 'recentes':    return (+b.dataset.id)    - (+a.dataset.id);
+        case 'avaliados':   return (+b.dataset.aval)  - (+a.dataset.aval);
+        default:            return (+a.dataset.pos)   - (+b.dataset.pos); // Relevância = ordem original
+      }
+    }).forEach(c => grid.appendChild(c));
+
+    // 3) esconde seção sem nenhum produto visível
     const secao = grid.closest('.section');
-    if (!secao) return;
-    const algumVisivel = [...grid.querySelectorAll('.product-card')]
-      .some(c => c.style.display !== 'none');
-    secao.style.display = algumVisivel ? '' : 'none';
+    if (secao) {
+      const algum = cards.some(c => c.style.display !== 'none');
+      secao.style.display = algum ? '' : 'none';
+    }
   });
 
-  // aviso quando nenhuma categoria corresponde
+  // aviso quando nada corresponde
   const total = [...document.querySelectorAll('.product-card')]
     .filter(c => c.style.display !== 'none').length;
-  mostrarAvisoVazio(total === 0, cat);
+  mostrarAvisoVazio(total === 0, filtros.categoria);
+}
+
+// ── Menu "Ordenar por" ──
+function initOrdenacao() {
+  const sel = document.getElementById('ordenarPor');
+  sel?.addEventListener('change', () => { filtros.ordem = sel.value; aplicarFiltros(); });
+}
+
+// ── Slider de preço (mín–máx) ──
+function configurarPrecoSlider() {
+  const elMin  = document.getElementById('precoMin');
+  const elMax  = document.getElementById('precoMax');
+  const label  = document.getElementById('precoLabel');
+  const trilho = document.getElementById('precoTrilho');
+  if (!elMin || !elMax) return;
+
+  const precos = produtos.map(p => p.preco).filter(n => Number.isFinite(n));
+  if (!precos.length) return;
+  const min = Math.floor(Math.min(...precos));
+  const max = Math.ceil(Math.max(...precos));
+
+  [elMin, elMax].forEach(el => { el.min = min; el.max = max; el.step = 1; });
+  elMin.value = min;
+  elMax.value = max;
+  filtros.precoMin = min;
+  filtros.precoMax = max;
+
+  function atualizar() {
+    const lo = Math.min(+elMin.value, +elMax.value);
+    const hi = Math.max(+elMin.value, +elMax.value);
+    filtros.precoMin = lo;
+    filtros.precoMax = hi;
+    if (label) label.textContent = `R$${lo} – R$${hi}`;
+    // preenche o trilho entre os dois thumbs
+    if (trilho && max > min) {
+      trilho.style.left  = ((lo - min) / (max - min) * 100) + '%';
+      trilho.style.right = (100 - (hi - min) / (max - min) * 100) + '%';
+    }
+    aplicarFiltros();
+  }
+  elMin.addEventListener('input', atualizar);
+  elMax.addEventListener('input', atualizar);
+  atualizar();
 }
 
 // ── Contagem real de produtos por categoria ──
@@ -246,30 +360,18 @@ function initBusca() {
   const btn   = document.querySelector('.search-bar .search-btn');
 
   function filtrar() {
-    const term = input.value.toLowerCase().trim();
+    filtros.busca = input.value;
     // ao buscar, volta o menu para "Todos os Produtos"
-    if (term) {
-      document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
-      document.querySelector('nav a[data-cat="todos"]')?.classList.add('active');
+    if (input.value.trim()) {
+      filtros.categoria = 'todos';
+      document.querySelectorAll('nav a').forEach(l =>
+        l.classList.toggle('active', l.dataset.cat === 'todos'));
     }
-    document.querySelectorAll('.product-card').forEach(card => {
-      const nome = card.querySelector('.product-name')?.textContent.toLowerCase() || '';
-      const desc = card.querySelector('.product-desc')?.textContent.toLowerCase() || '';
-      card.style.display = (!term || nome.includes(term) || desc.includes(term)) ? '' : 'none';
-    });
-    // reexibe/esconde seções conforme o que sobrou visível
-    document.querySelectorAll('.products-grid').forEach(grid => {
-      const secao = grid.closest('.section');
-      if (!secao) return;
-      const algumVisivel = [...grid.querySelectorAll('.product-card')]
-        .some(c => c.style.display !== 'none');
-      secao.style.display = algumVisivel ? '' : 'none';
-    });
-    const aviso = document.getElementById('semProdutos');
-    if (aviso) aviso.style.display = 'none';
+    aplicarFiltros();
   }
 
   btn?.addEventListener('click', filtrar);
+  input?.addEventListener('input', filtrar);
   input?.addEventListener('keydown', e => { if (e.key === 'Enter') filtrar(); });
 }
 

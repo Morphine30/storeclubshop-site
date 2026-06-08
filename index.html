@@ -75,7 +75,7 @@
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <span>🔥 Frete Grátis acima de R$99</span>
+  <span>🔒 Pagamento 100% protegido</span>
   <span>⚡ Entrega para todo o Brasil</span>
   <span>✅ Compra 100% Segura</span>
 </div>
@@ -135,7 +135,7 @@
         <div class="stat"><div class="stat-num">4.9★</div><div class="stat-label">Avaliação</div></div>
       </div>
     </div>
-    <div class="hero-visual">
+    <div class="hero-visual" id="heroVisual">
       <div class="hero-card big"><img src="https://res.cloudinary.com/dk1g0qty0/image/upload/v1780877926/storeclubshop/keuorzzpa67pdwqxvdpp.png" alt="Massageador Elétrico Pro"><span class="tag">Mais Vendido</span><span class="price-tag">R$99</span></div>
       <div class="hero-card"><img src="https://res.cloudinary.com/dk1g0qty0/image/upload/v1780946046/storeclubshop/bf5hp8ne09mxxywb8xrw.png" alt="Copo Térmico Brasil"><span class="tag">Novo</span></div>
       <div class="hero-card"><img src="https://res.cloudinary.com/dk1g0qty0/image/upload/v1780876814/storeclubshop/akpt7bp176idhqibpffl.png" alt="Brow Touch Pro"><span class="tag">-40%</span></div>
@@ -165,6 +165,29 @@
     <a href="#produtos" class="cat-card" data-cat="Bem-Estar"><span class="cat-icon">💪</span><div class="cat-name">Bem-Estar</div><div class="cat-count">41 produtos</div></a>
     <a href="#produtos" class="cat-card" data-cat="Eletrodomésticos"><span class="cat-icon">🏠</span><div class="cat-name">Eletrodomésticos</div><div class="cat-count">27 produtos</div></a>
     <a href="#produtos" class="cat-card" data-cat="Eletrônicos"><span class="cat-icon">⚡</span><div class="cat-name">Eletrônicos</div><div class="cat-count">65 produtos</div></a>
+  </div>
+</div>
+
+<!-- BARRA DE FILTROS -->
+<div class="filtros-bar">
+  <div class="filtro-grupo">
+    <label for="ordenarPor">Ordenar por</label>
+    <select id="ordenarPor">
+      <option value="padrao">Relevância</option>
+      <option value="menor-preco">Menor preço</option>
+      <option value="maior-preco">Maior preço</option>
+      <option value="recentes">Mais recentes</option>
+      <option value="avaliados">Melhor avaliados</option>
+    </select>
+  </div>
+  <div class="filtro-grupo filtro-preco">
+    <label>Preço: <span id="precoLabel">R$0 – R$0</span></label>
+    <div class="range-slider">
+      <span class="range-track"></span>
+      <span class="range-fill" id="precoTrilho"></span>
+      <input type="range" id="precoMin" min="0" max="100" value="0">
+      <input type="range" id="precoMax" min="0" max="100" value="100">
+    </div>
   </div>
 </div>
 

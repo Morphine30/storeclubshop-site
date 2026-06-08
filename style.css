@@ -182,6 +182,71 @@
   }
   nav a:hover, nav a.active { color: #000; background: var(--verde); }
 
+  /* ── BARRA DE FILTROS (ordenar + preço) ── */
+  .filtros-bar {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 20px 24px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 28px;
+  }
+  .filtro-grupo { display: flex; flex-direction: column; gap: 7px; }
+  .filtro-grupo > label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  #ordenarPor {
+    background: var(--dark3);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+  }
+  #ordenarPor:focus { border-color: var(--verde); }
+  #precoLabel { color: var(--verde); font-weight: 600; }
+  .filtro-preco { flex: 1; min-width: 220px; max-width: 360px; }
+
+  /* slider duplo (mín–máx) */
+  .range-slider { position: relative; height: 34px; }
+  .range-track, .range-fill {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    height: 4px; border-radius: 4px;
+  }
+  .range-track { left: 0; right: 0; background: var(--border); }
+  .range-fill  { background: var(--verde); }
+  .range-slider input[type="range"] {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 34px; margin: 0;
+    background: transparent;
+    -webkit-appearance: none; appearance: none;
+    pointer-events: none;
+  }
+  .range-slider input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: transparent; }
+  .range-slider input[type="range"]::-moz-range-track { height: 4px; background: transparent; }
+  .range-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    pointer-events: auto;
+    height: 18px; width: 18px; margin-top: -7px;
+    border-radius: 50%; background: var(--verde);
+    border: 2px solid #000; cursor: pointer;
+  }
+  .range-slider input[type="range"]::-moz-range-thumb {
+    pointer-events: auto;
+    height: 18px; width: 18px;
+    border-radius: 50%; background: var(--verde);
+    border: 2px solid #000; cursor: pointer;
+  }
+
   /* ── HERO ── */
   .hero {
     position: relative;

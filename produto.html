@@ -36,6 +36,10 @@
     .btn-comprar { display: block; text-align: center; background: #7c3aed; color: #fff; padding: 16px; border-radius: 10px; font-weight: 900; font-size: 1.1rem; text-decoration: none; transition: .2s; margin-top: 8px; }
     .btn-comprar:hover { background: #6d28d9; }
     .btn-comprar.sem-link { background: #333; cursor: default; }
+    /* Selos de confiança */
+    .selos-compra { list-style: none; margin: 16px 0 0; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #161616; border: 1px solid #222; border-radius: 10px; }
+    .selos-compra li { display: flex; align-items: center; gap: 10px; color: #ccc; font-size: .95rem; }
+    .selo-icon { font-size: 1.2rem; }
 
     /* Voltar */
     .btn-voltar { display: inline-flex; align-items: center; gap: 6px; color: #888; text-decoration: none; font-size: .9rem; margin-bottom: 24px; }
@@ -174,6 +178,12 @@ async function carregar() {
         </div>
         <div class="produto-desc">${escHtml(p.descricao)}</div>
         ${btnComprar}
+        <ul class="selos-compra">
+          <li><span class="selo-icon">🛡️</span> Compra Segura</li>
+          <li><span class="selo-icon">🚚</span> Envio para todo Brasil</li>
+          <li><span class="selo-icon">💳</span> Parcelamento disponível</li>
+          <li><span class="selo-icon">🔒</span> Pagamento protegido</li>
+        </ul>
       </div>
     </div>
     ${sugestoesHtml}`;
