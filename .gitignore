@@ -1,0 +1,21 @@
+# ── Segredos e credenciais (NUNCA commitar) ──
+SENHA_ADMIN_TOKEN.txt
+CONTAS_E_SERVICOS.txt
+*.env
+.env
+.env.*
+
+# ── Arquivos compactados / backups ──
+*.zip
+*.rar
+*.7z
+
+# ── Sistema operacional ──
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# ── Dependências / editor ──
+node_modules/
+.vscode/
+.idea/
