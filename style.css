@@ -14,11 +14,13 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  html { overflow-x: hidden; }
   body {
     background: var(--dark);
     color: var(--text);
     font-family: 'Barlow', sans-serif;
     overflow-x: hidden;
+    max-width: 100%;
   }
 
   /* ── TOPBAR ── */
@@ -507,6 +509,11 @@
     color: var(--muted);
     margin-bottom: 12px;
     line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .product-stars { color: var(--amarelo); font-size: 12px; margin-bottom: 10px; }
   .product-stars span { color: var(--muted); font-size: 11px; margin-left: 4px; }
@@ -920,6 +927,14 @@
     .header-inner { gap: 14px; }
     .topbar span { display: none; }
     .topbar span:first-child { display: inline; }
+    /* Faixa de categorias vira rolagem horizontal (não estica a página) */
+    .nav-inner {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    nav a { flex-shrink: 0; }
   }
   @media (max-width: 480px) {
     .products-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
