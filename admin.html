@@ -244,16 +244,29 @@
   </div>
 </div>
 
-<!-- ── FOTOS DAS CATEGORIAS ── -->
+<!-- ── GERENCIAR CATEGORIAS ── -->
 <div class="panel" id="categoriasPanel" style="max-width:1280px;margin:0 auto 24px;">
   <div class="panel-header">
-    <span class="panel-title">📸 Fotos das Categorias</span>
+    <span class="panel-title">🏷️ Gerenciar Categorias</span>
+    <span class="panel-count" id="catCount">0 categorias</span>
   </div>
   <div style="padding:20px 24px;">
     <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:16px;">
-      Suba uma foto para cada categoria (substitui o emoji nas cards da home). Imagem <strong>quadrada</strong> fica melhor. JPG, PNG, WEBP — máx. 5 MB.
+      Crie as categorias da loja. Cada uma vira um filtro no menu e um card na home (o card aparece quando houver ao menos 1 produto nela). A foto <strong>quadrada</strong> substitui o emoji. JPG, PNG, WEBP — máx. 5 MB.
     </p>
-    <div id="categoriasGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;"></div>
+    <!-- criar nova categoria -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:18px;">
+      <div class="form-group" style="flex:2;min-width:180px;margin:0;">
+        <label>Nova categoria *</label>
+        <input id="novaCatNome" placeholder="Ex: Perfumes Masculinos" maxlength="100" onkeydown="if(event.key==='Enter')criarCategoria()">
+      </div>
+      <div class="form-group" style="flex:0 0 80px;margin:0;">
+        <label>Emoji</label>
+        <input id="novaCatEmoji" placeholder="🏷️" maxlength="4" style="text-align:center;">
+      </div>
+      <button type="button" class="btn-save" onclick="criarCategoria()" style="flex:0 0 auto;">➕ Criar categoria</button>
+    </div>
+    <div id="categoriasGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;"></div>
   </div>
 </div>
 
@@ -308,13 +321,6 @@
           <label>Categoria *</label>
           <select name="categoria" id="categoria" required>
             <option value="">Selecione...</option>
-            <option>Eletrônicos</option>
-            <option>Beleza</option>
-            <option>Bem-Estar</option>
-            <option>Eletrodomésticos</option>
-            <option>Casa e Cozinha</option>
-            <option>Coleção Copa</option>
-            <option>Geral</option>
           </select>
         </div>
         <div class="form-group">
@@ -540,78 +546,167 @@
     }
   }
 
-  // ── Fotos das Categorias ──
-  // Categorias que têm card na home (index.html)
-  const CATEGORIAS_HOME = ['Coleção Copa', 'Beleza', 'Bem-Estar', 'Eletrodomésticos', 'Eletrônicos'];
-  let categoriasImgs = {};
+  // ── Categorias (CRUD) ──
+  let categoriasDB = [];   // [{nome, emoji, imagem, ordem}] vindas da API
 
   async function carregarCategoriasAdmin() {
     try {
       const res = await fetch(`${API}/api/categorias`);
-      if (res.ok) {
-        const cats = await res.json();
-        categoriasImgs = {};
-        cats.forEach(c => { categoriasImgs[c.nome] = c.imagem; });
-      }
+      if (res.ok) categoriasDB = await res.json();
     } catch { /* sem config ainda */ }
     renderCategoriasUI();
+    popularSelectCategoria();
+  }
+
+  // Lista exibida = categorias do banco + categorias que já aparecem nos produtos
+  function listaCategorias() {
+    const map = new Map();
+    categoriasDB.forEach(c => map.set(c.nome, {
+      nome: c.nome, emoji: c.emoji || '🏷️', imagem: c.imagem || null,
+      ordem: c.ordem || 0, noDB: true
+    }));
+    produtos.forEach(p => {
+      if (p.categoria && !map.has(p.categoria)) {
+        map.set(p.categoria, { nome: p.categoria, emoji: '🏷️', imagem: null, ordem: 0, noDB: false });
+      }
+    });
+    return [...map.values()].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome));
+  }
+
+  function contagemPorCategoria() {
+    const c = {};
+    produtos.forEach(p => { if (p.categoria) c[p.categoria] = (c[p.categoria] || 0) + 1; });
+    return c;
   }
 
   function renderCategoriasUI() {
     const grid = document.getElementById('categoriasGrid');
     if (!grid) return;
-    grid.innerHTML = CATEGORIAS_HOME.map(nome => {
-      const img = categoriasImgs[nome];
-      const nomeAttr = nome.replace(/'/g, "\\'");
-      const preview = img
-        ? `<img src="${img.replace(/"/g, '%22')}" style="width:100%;height:110px;object-fit:cover;border-radius:8px;display:block;">`
-        : `<div style="height:110px;display:flex;align-items:center;justify-content:center;background:var(--dark3);border-radius:8px;color:var(--muted);font-size:12px;">sem foto</div>`;
-      const btnRemover = img
-        ? `<button type="button" onclick="removerCategoriaImagem('${nomeAttr}')" style="background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px;font-size:11px;cursor:pointer;">✕ Remover foto</button>`
-        : '';
+    const cats = listaCategorias();
+    const cont = contagemPorCategoria();
+    const lbl  = document.getElementById('catCount');
+    if (lbl) lbl.textContent = `${cats.length} categoria${cats.length !== 1 ? 's' : ''}`;
+
+    if (cats.length === 0) {
+      grid.innerHTML = '<div class="list-empty">Nenhuma categoria ainda. Crie a primeira acima. 👆</div>';
+      return;
+    }
+
+    grid.innerHTML = cats.map(c => {
+      const nomeAttr = c.nome.replace(/'/g, "\\'");
+      const nProd = cont[c.nome] || 0;
+      const preview = c.imagem
+        ? `<img src="${c.imagem.replace(/"/g, '%22')}" style="width:100%;height:110px;object-fit:cover;border-radius:8px;display:block;">`
+        : `<div style="height:110px;display:flex;align-items:center;justify-content:center;background:var(--dark3);border-radius:8px;font-size:44px;">${esc(c.emoji)}</div>`;
+      const avisoNova = c.noDB ? '' :
+        `<span style="font-size:10px;color:var(--muted);line-height:1.3;">só existe nos produtos — defina um emoji/foto para gerenciá-la</span>`;
       return `
         <div style="border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;">
-          <div style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.3px;">${esc(nome)}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+            <span style="font-size:13px;font-weight:700;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.3px;line-height:1.1;">${esc(c.nome)}</span>
+            <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${nProd} prod.</span>
+          </div>
           ${preview}
-          <label style="background:var(--verde);color:#000;border-radius:6px;padding:7px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;text-transform:uppercase;letter-spacing:.3px;">
-            📤 ${img ? 'Trocar' : 'Subir'} foto
-            <input type="file" accept="image/*" style="display:none" onchange="uploadCategoriaImagem('${nomeAttr}', this)">
-          </label>
-          ${btnRemover}
+          <div style="display:flex;gap:6px;">
+            <input value="${esc(c.emoji)}" maxlength="4" title="Emoji" onchange="salvarEmojiCategoria('${nomeAttr}', this.value)" style="width:46px;text-align:center;background:var(--dark3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px;">
+            <label style="flex:1;background:var(--verde);color:#000;border-radius:6px;padding:7px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;text-transform:uppercase;letter-spacing:.3px;">
+              📤 ${c.imagem ? 'Trocar foto' : 'Foto'}
+              <input type="file" accept="image/*" style="display:none" onchange="uploadCategoriaImagem('${nomeAttr}', this)">
+            </label>
+          </div>
+          <div style="display:flex;gap:6px;">
+            ${c.imagem ? `<button type="button" onclick="removerCategoriaImagem('${nomeAttr}')" style="flex:1;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px;font-size:11px;cursor:pointer;">✕ Foto</button>` : ''}
+            <button type="button" onclick="excluirCategoria('${nomeAttr}', ${nProd})" style="flex:1;background:transparent;border:1px solid #5a2230;color:#ff6b81;border-radius:6px;padding:6px;font-size:11px;cursor:pointer;">🗑️ Excluir</button>
+          </div>
+          ${avisoNova}
         </div>`;
     }).join('');
   }
 
+  // Preenche o <select> de categoria do formulário de produto
+  function popularSelectCategoria() {
+    const sel = document.getElementById('categoria');
+    if (!sel) return;
+    const atual = sel.value;
+    const nomes = listaCategorias().map(c => c.nome);
+    sel.innerHTML = '<option value="">Selecione...</option>' +
+      nomes.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+    if (atual && nomes.includes(atual)) sel.value = atual;
+  }
+
+  // Garante que a categoria de um produto em edição exista no select (mesmo se foi excluída)
+  function garantirOpcaoCategoria(nome) {
+    const sel = document.getElementById('categoria');
+    if (!sel || !nome) return;
+    if (![...sel.options].some(o => o.value === nome)) {
+      const o = document.createElement('option');
+      o.value = o.textContent = nome;
+      sel.appendChild(o);
+    }
+  }
+
+  // PUT /api/categorias com os campos informados; atualiza cache e UI
+  async function salvarCategoria(payload, msgOk) {
+    const fd = new FormData();
+    Object.entries(payload).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, v); });
+    const res = await fetch(`${API}/api/categorias`, { method: 'PUT', headers: authHeaders(), body: fd });
+    if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); throw new Error('401'); }
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.erro || 'Erro ao salvar'); }
+    const salvo = await res.json();
+    const i = categoriasDB.findIndex(c => c.nome === salvo.nome);
+    if (i >= 0) categoriasDB[i] = salvo; else categoriasDB.push(salvo);
+    renderCategoriasUI();
+    popularSelectCategoria();
+    if (msgOk) toast(msgOk);
+    return salvo;
+  }
+
+  async function criarCategoria() {
+    const nome  = document.getElementById('novaCatNome').value.trim();
+    const emoji = document.getElementById('novaCatEmoji').value.trim() || '🏷️';
+    if (!nome) { toast('Digite o nome da categoria.', 'erro'); return; }
+    if (listaCategorias().some(c => c.nome.toLowerCase() === nome.toLowerCase())) {
+      toast('Essa categoria já existe.', 'erro'); return;
+    }
+    try {
+      await salvarCategoria({ nome, emoji }, '✅ Categoria criada!');
+      document.getElementById('novaCatNome').value = '';
+      document.getElementById('novaCatEmoji').value = '';
+      document.getElementById('novaCatNome').focus();
+    } catch (err) { if (err.message !== '401') toast('❌ ' + err.message, 'erro'); }
+  }
+
+  async function salvarEmojiCategoria(nome, emoji) {
+    try { await salvarCategoria({ nome, emoji: (emoji || '').trim() || '🏷️' }, '✅ Emoji atualizado!'); }
+    catch (err) { if (err.message !== '401') toast('❌ ' + err.message, 'erro'); }
+  }
+
   async function uploadCategoriaImagem(nome, input) {
     if (!input.files || !input.files[0]) return;
-    const fd = new FormData();
-    fd.append('nome', nome);
-    fd.append('imagem', input.files[0]);
-    try {
-      const res = await fetch(`${API}/api/categorias`, { method: 'PUT', headers: authHeaders(), body: fd });
-      if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); return; }
-      if (!res.ok) { const e = await res.json(); throw new Error(e.erro || 'Erro ao enviar'); }
-      const salvo = await res.json();
-      categoriasImgs[nome] = salvo.imagem;
-      renderCategoriasUI();
-      toast('✅ Foto da categoria atualizada!');
-    } catch (err) {
-      toast('❌ ' + err.message, 'erro');
-    }
+    try { await salvarCategoria({ nome, imagem: input.files[0] }, '✅ Foto da categoria atualizada!'); }
+    catch (err) { if (err.message !== '401') toast('❌ ' + err.message, 'erro'); }
   }
 
   async function removerCategoriaImagem(nome) {
     if (!confirm(`Remover a foto de "${nome}"? Volta a mostrar o emoji.`)) return;
+    try { await salvarCategoria({ nome, removerImagem: 'true' }, 'Foto removida.'); }
+    catch (err) { if (err.message !== '401') toast('❌ ' + err.message, 'erro'); }
+  }
+
+  async function excluirCategoria(nome, nProd) {
+    const aviso = nProd > 0
+      ? `Excluir a categoria "${nome}"?\n\n${nProd} produto(s) usam ela — eles NÃO serão apagados, mas ficarão sem categoria até você reatribuir.`
+      : `Excluir a categoria "${nome}"?`;
+    if (!confirm(aviso)) return;
     try {
       const res = await fetch(`${API}/api/categorias/${encodeURIComponent(nome)}`, { method: 'DELETE', headers: authHeaders() });
       if (res.status === 401) { toast('Sessão expirada. Faça login novamente.', 'erro'); sair(); return; }
-      if (!res.ok) throw new Error('Erro ao remover');
-      categoriasImgs[nome] = null;
+      if (!res.ok && res.status !== 404) throw new Error('Erro ao excluir');
+      categoriasDB = categoriasDB.filter(c => c.nome !== nome);
       renderCategoriasUI();
-      toast('Foto removida.');
-    } catch (err) {
-      toast('❌ ' + err.message, 'erro');
-    }
+      popularSelectCategoria();
+      toast('Categoria excluída.');
+    } catch (err) { toast('❌ ' + err.message, 'erro'); }
   }
 
   // ── Destaques do Hero ──
@@ -722,6 +817,7 @@
     document.getElementById('preco').value       = p.preco;
     document.getElementById('precoAntigo').value = p.precoAntigo || '';
     document.getElementById('linkPagamento').value = p.linkPagamento || '';
+    garantirOpcaoCategoria(p.categoria);
     document.getElementById('categoria').value   = p.categoria;
     document.getElementById('secao').value       = p.secao || 'mais-vendidos';
     document.getElementById('badge').value       = p.badge || '';

@@ -1,5 +1,6 @@
 const API_URL = window.API_URL || 'http://localhost:3000';
 let produtos = [];
+let categoriasDB = [];   // categorias vindas de /api/categorias
 
 // estado unificado de filtros (categoria + busca + preço + ordem)
 const filtros = { categoria: 'todos', busca: '', precoMin: 0, precoMax: Infinity, ordem: 'padrao' };
@@ -69,7 +70,7 @@ async function carregarProdutos() {
     produtos = await res.json();
     renderizarGrades();
     carregarDestaques();
-    carregarCategoriasImagens();
+    carregarCategorias();
   } catch {
     clearTimeout(_overlayTimer);
     esconderOverlay();
@@ -173,21 +174,69 @@ function renderHero(destaques) {
   if (cards.some(c => c)) wrap.innerHTML = cards.join('');
 }
 
-// ── Fotos das categorias (configuráveis no admin) ──
-async function carregarCategoriasImagens() {
+// ── Categorias dinâmicas (menu + cards, configuráveis no admin) ──
+async function carregarCategorias() {
   try {
     const res = await fetch(`${API_URL}/api/categorias`);
-    if (!res.ok) return;
-    const cats = await res.json();
-    cats.forEach(c => {
-      if (!c.imagem) return;
-      const sel = `.cat-card[data-cat="${c.nome.replace(/"/g, '\\"')}"] .cat-icon`;
-      document.querySelectorAll(sel).forEach(icon => {
-        icon.innerHTML = `<img src="${c.imagem.replace(/"/g, '%22')}" alt="${escHtml(c.nome)}">`;
-        icon.classList.add('cat-icon-img');
+    if (res.ok) categoriasDB = await res.json();
+  } catch { /* sem config: mantém o HTML estático como fallback */ }
+
+  const cats = listaCategoriasSite();
+  if (!cats.length) return;   // nada pra montar: mantém o HTML fixo (já vinculado no load)
+
+  renderNav(cats);
+  renderCatCards(cats);
+  initNavAtivo();                 // religa os cliques nos elementos recém-criados
+  atualizarContagemCategorias();  // aplica contagem e esconde categorias vazias
+}
+
+// Emojis-padrão das categorias legadas (usados enquanto não houver emoji/foto no banco)
+const EMOJIS_PADRAO = {
+  'Coleção Copa': '🏆', 'Beleza': '💄', 'Bem-Estar': '💪',
+  'Eletrodomésticos': '🏠', 'Eletrônicos': '⚡', 'Casa e Cozinha': '🍳', 'Geral': '📦'
+};
+
+// Lista = categorias do banco + categorias que já existem nos produtos (nada some)
+function listaCategoriasSite() {
+  const map = new Map();
+  categoriasDB.forEach(c => map.set(c.nome, {
+    nome: c.nome, emoji: c.emoji || EMOJIS_PADRAO[c.nome] || '🏷️',
+    imagem: c.imagem || null, ordem: c.ordem || 0
+  }));
+  produtos.forEach(p => {
+    if (p.categoria && !map.has(p.categoria)) {
+      map.set(p.categoria, {
+        nome: p.categoria, emoji: EMOJIS_PADRAO[p.categoria] || '🏷️', imagem: null, ordem: 0
       });
-    });
-  } catch { /* mantém o emoji se falhar */ }
+    }
+  });
+  return [...map.values()].sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome));
+}
+
+function renderNav(cats) {
+  const nav = document.querySelector('.nav-inner');
+  if (!nav) return;
+  const ativo = nav.querySelector('a.active')?.dataset.cat || 'todos';
+  const links = cats.map(c =>
+    `<a href="#produtos" data-cat="${escHtml(c.nome)}">${escHtml(c.nome)}</a>`).join('');
+  nav.innerHTML =
+    `<a href="#produtos" data-cat="todos">Todos os Produtos</a>` +
+    links +
+    `<a href="#produtos" data-cat="ofertas">Ofertas 🔥</a>`;
+  // mantém o destaque na categoria que estava ativa
+  nav.querySelectorAll('a').forEach(a =>
+    a.classList.toggle('active', a.dataset.cat === ativo));
+}
+
+function renderCatCards(cats) {
+  const grid = document.querySelector('.categories-grid');
+  if (!grid) return;
+  grid.innerHTML = cats.map(c => {
+    const icon = c.imagem
+      ? `<span class="cat-icon cat-icon-img"><img src="${c.imagem.replace(/"/g, '%22')}" alt="${escHtml(c.nome)}"></span>`
+      : `<span class="cat-icon">${escHtml(c.emoji)}</span>`;
+    return `<a href="#produtos" class="cat-card" data-cat="${escHtml(c.nome)}">${icon}<div class="cat-name">${escHtml(c.nome)}</div><div class="cat-count">0 produtos</div></a>`;
+  }).join('');
 }
 
 function bindBotoesComprar() {
